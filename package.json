@@ -1,0 +1,39 @@
+{
+  "name": "base-batches-marketplace",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@langchain/openai": "^0.6.14",
+    "@types/cheerio": "^0.22.35",
+    "@types/multer": "^2.0.0",
+    "@types/uuid": "^10.0.0",
+    "axios": "^1.12.2",
+    "cheerio": "^1.1.2",
+    "dotenv": "^17.2.3",
+    "langchain": "^0.3.35",
+    "multer": "^2.0.2",
+    "next": "15.5.4",
+    "openai": "^6.3.0",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "sharp": "^0.34.4",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.4",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
