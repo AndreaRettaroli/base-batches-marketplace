@@ -12,24 +12,34 @@ export class ImageAnalysisService {
     try {
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4.1-mini",
+        model: "gpt-4o",
         messages: [
           {
             role: "user",
             content: [
               {
                 type: "text",
-                text: `Analyze this image and identify the product. You must respond with ONLY valid JSON in this exact format:
+                text: `Analyze this image for marketplace listing purposes. Identify the product and provide detailed information for selling. You must respond with ONLY valid JSON in this exact format:
 
 {
   "brand": "brand name or null if not visible",
   "productName": "specific product name or description",
-  "category": "product category (electronics, clothing, accessories, home, sports, etc.)",
-  "characteristics": ["color", "size", "material", "style", "other features"],
-  "confidence": 0.85
+  "category": "product category (electronics, clothing, books, home, toys, sports, accessories, etc.)",
+  "characteristics": ["color", "size", "material", "style", "condition indicators", "other features"],
+  "confidence": 0.85,
+  "condition": "new|used|refurbished|vintage",
+  "suggestedPrice": 25.99,
+  "tags": ["relevant", "searchable", "keywords"]
 }
 
-Do not include any text before or after the JSON. Analyze the image carefully and provide accurate details.`
+Focus on:
+- Accurate product identification for marketplace listing
+- Visible condition assessment (new, used, vintage, etc.)
+- Realistic price suggestion based on product type and apparent condition
+- SEO-friendly tags for searchability
+- Detailed characteristics that buyers would want to know
+
+Do not include any text before or after the JSON. Analyze the image carefully and provide accurate marketplace-ready details.`
               },
               {
                 type: "image_url",
@@ -40,7 +50,7 @@ Do not include any text before or after the JSON. Analyze the image carefully an
             ]
           }
         ],
-        max_tokens: 500
+        max_tokens: 800
       });
       console.log("🚀 ~ ImageAnalysisService ~ analyzeImage ~ response:", response);
       console.log("🚀 ~ Raw content:", response.choices[0]?.message?.content);

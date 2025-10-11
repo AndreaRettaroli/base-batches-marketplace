@@ -12,6 +12,9 @@ export interface ImageAnalysisResult {
   category?: string;
   characteristics: string[];
   confidence: number;
+  suggestedPrice?: number;
+  condition?: 'new' | 'used' | 'refurbished' | 'vintage';
+  tags?: string[];
 }
 
 export interface PriceInfo {
@@ -33,4 +36,40 @@ export interface ChatSession {
   messages: ChatMessage[];
   createdAt: Date;
   updatedAt: Date;
+  state?: 'initial' | 'analyzing' | 'gathering_details' | 'ready_to_list' | 'listed';
+  productData?: Partial<MarketplaceProduct>;
+}
+
+export interface MarketplaceProduct {
+  id: string;
+  sellerId: string;
+  title: string;
+  description: string;
+  category: string;
+  brand?: string;
+  condition: 'new' | 'used' | 'refurbished' | 'vintage';
+  price: number;
+  currency: string;
+  images: string[];
+  tags: string[];
+  specifications: Record<string, any>; // For size, color, model, etc.
+  marketPriceAnalysis: PriceInfo[];
+  suggestedPrice: number;
+  status: 'draft' | 'active' | 'sold' | 'inactive';
+  createdAt: Date;
+  updatedAt: Date;
+  views: number;
+  favorites: number;
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  name: string;
+  avatar?: string;
+  location?: string;
+  joinedAt: Date;
+  rating: number;
+  totalSales: number;
+  totalPurchases: number;
 }

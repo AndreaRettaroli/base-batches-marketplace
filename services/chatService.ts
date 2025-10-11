@@ -2,6 +2,9 @@ import { ChatOpenAI } from '@langchain/openai';
 import { HumanMessage, AIMessage, SystemMessage } from '@langchain/core/messages';
 import { ChatMessage, ChatSession } from '../types';
 import { v4 as uuidv4 } from 'uuid';
+import { DatabaseService } from './database';
+
+type ChatState = 'initial' | 'analyzing' | 'gathering_details' | 'ready_to_list' | 'listed';
 
 export class ChatService {
   private static model = new ChatOpenAI({
@@ -12,20 +15,123 @@ export class ChatService {
   private static sessions: Map<string, ChatSession> = new Map();
 
   static createSession(): ChatSession {
-    const sessionId = uuidv4();
+    const id = uuidv4();
     const session: ChatSession = {
-      id: sessionId,
+      id,
       messages: [],
       createdAt: new Date(),
       updatedAt: new Date(),
+      state: 'initial'
     };
     
-    this.sessions.set(sessionId, session);
+    this.sessions.set(id, session);
+    
+    // Add welcome message
+    const welcomeMessage: ChatMessage = {
+      id: uuidv4(),
+      role: 'assistant',
+      content: "Hello! I'm your marketplace assistant. What would you like to sell today? You can upload an image of your product and I'll help you analyze it, research pricing, and create a listing.",
+      timestamp: new Date(),
+    };
+    
+    session.messages.push(welcomeMessage);
+    
     return session;
   }
 
-  static getSession(sessionId: string): ChatSession | null {
-    return this.sessions.get(sessionId) || null;
+  static getSession(sessionId: string): ChatSession | undefined {
+    return this.sessions.get(sessionId);
+  }
+
+  private static getSystemPrompt(state: ChatState): string {
+    switch (state) {
+      case 'initial':
+        return `You are a helpful marketplace assistant. If the user asks to list or sell a product but hasn't uploaded an image yet, politely ask them to upload an image first so you can analyze it and help them create an accurate listing. Be friendly and guide them through the process.`;
+      
+      case 'analyzing':
+        return `You are analyzing a product. Provide detailed insights about the product's features, condition, and market value based on the analysis data provided.`;
+      
+      case 'gathering_details':
+        return `You are helping gather additional product details. Ask clarifying questions about condition, included accessories, purchase date, or any other relevant details that would help with accurate pricing and listing creation.`;
+      
+      case 'ready_to_list':
+        return `You have enough information to create a marketplace listing. The product has been analyzed and you have pricing data. If the user mentions wanting to sell, setting a price, or confirms they want to list the product, treat this as confirmation to create the listing. Ask if they want to create a listing at their specified price or the suggested market price.`;
+      
+      case 'listed':
+        return `The product has been successfully listed in the marketplace. Provide confirmation and any next steps for the user.`;
+      
+      default:
+        return `You are a helpful marketplace assistant that helps users identify products, find pricing information, and create listings.`;
+    }
+  }
+
+  private static detectSaleConfirmation(message: string): boolean {
+    const confirmationKeywords = [
+      'yes', 'sure', 'ok', 'okay', 'go ahead', 'create listing', 'list it', 
+      'sell it', 'post it', 'confirm', 'proceed', 'create', 'let\'s do it',
+      'want to sell', 'sell for', 'price at', 'list for', 'sell this'
+    ];
+    
+    const lowerMessage = message.toLowerCase();
+    return confirmationKeywords.some(keyword => lowerMessage.includes(keyword));
+  }
+
+  private static extractPriceFromMessage(message: string): number | null {
+    // Look for patterns like "$20", "20 dollars", "for 20", "price 20"
+    const pricePatterns = [
+      /\$(\d+(?:\.\d{2})?)/,  // $20 or $20.50
+      /(\d+(?:\.\d{2})?)\s*dollars?/i,  // 20 dollars
+      /for\s+(\d+(?:\.\d{2})?)/i,  // for 20
+      /price\s+(\d+(?:\.\d{2})?)/i,  // price 20
+      /sell\s+for\s+(\d+(?:\.\d{2})?)/i  // sell for 20
+    ];
+
+    for (const pattern of pricePatterns) {
+      const match = message.match(pattern);
+      if (match) {
+        const price = parseFloat(match[1]);
+        if (!isNaN(price) && price > 0) {
+          return price;
+        }
+      }
+    }
+    
+    return null;
+  }
+
+  private static async createListingFromSession(session: ChatSession): Promise<boolean> {
+    if (!session.productData) {
+      console.error('No product data found in session');
+      return false;
+    }
+
+    try {
+      // Ensure required fields are present
+      const productData = {
+        sellerId: 'user_' + session.id,
+        title: session.productData.title || 'Untitled Product',
+        description: session.productData.description || 'No description provided',
+        category: session.productData.category || 'Other',
+        brand: session.productData.brand,
+        condition: session.productData.condition || 'used',
+        price: session.productData.price || 0,
+        currency: session.productData.currency || 'USD',
+        images: session.productData.images || [],
+        tags: session.productData.tags || [],
+        specifications: session.productData.specifications || {},
+        marketPriceAnalysis: session.productData.marketPriceAnalysis || [],
+        suggestedPrice: session.productData.suggestedPrice || 0,
+        status: 'active' as const
+      };
+
+      const createdProduct = await DatabaseService.createProduct(productData);
+      console.log('✅ Product created successfully:', createdProduct.id);
+      session.state = 'listed';
+      return true;
+    } catch (error) {
+      console.error('❌ Error creating listing:', error);
+      return false;
+    }
   }
 
   static async sendMessage(
@@ -54,18 +160,36 @@ export class ChatService {
     
     session.messages.push(userMessage);
 
+    // Check for sale confirmation and create listing automatically
+    if (session.state === 'ready_to_list' && this.detectSaleConfirmation(message)) {
+      // Check if user specified a price and update it
+      const userPrice = this.extractPriceFromMessage(message);
+      if (userPrice && session.productData) {
+        session.productData.price = userPrice;
+      }
+
+      const listingCreated = await this.createListingFromSession(session);
+      if (listingCreated) {
+        const priceText = userPrice ? `$${userPrice}` : `$${session.productData?.price || 0}`;
+        const confirmationMessage: ChatMessage = {
+          id: uuidv4(),
+          role: 'assistant',
+          content: `🎉 Perfect! I've successfully created your listing for the ${session.productData?.title} at ${priceText}. Your product is now live in the marketplace and potential buyers can find it. You'll be notified when someone shows interest!`,
+          timestamp: new Date(),
+        };
+        
+        session.messages.push(confirmationMessage);
+        session.updatedAt = new Date();
+        
+        return confirmationMessage;
+      }
+    }
+
     try {
-      // Convert session messages to LangChain format
+      // Convert session messages to LangChain format with state-aware system prompt
+      const systemPrompt = this.getSystemPrompt(session.state || 'initial');
       const langChainMessages = [
-        new SystemMessage(`You are a helpful marketplace assistant that helps users identify products from images and find price information. 
-        
-        When a user uploads an image:
-        1. Analyze the product in the image
-        2. Identify brand, product name, and key characteristics
-        3. Provide helpful information about the product
-        4. Suggest where to find pricing information
-        
-        Be conversational, helpful, and provide actionable insights.`),
+        new SystemMessage(systemPrompt),
         ...session.messages.map(msg => 
           msg.role === 'user' 
             ? new HumanMessage(msg.content)
@@ -133,19 +257,37 @@ export class ChatService {
         ${productAnalysis.priceComparison.map((price: any) => 
           `${price.platform}: ${price.price} - ${price.availability}`
         ).join('\n')}`;
+
+        // Store product data in session
+        session.productData = {
+          title: productAnalysis.imageAnalysis.productName,
+          description: `${productAnalysis.imageAnalysis.category} from ${productAnalysis.imageAnalysis.brand}. ${productAnalysis.imageAnalysis.characteristics.join(', ')}.`,
+          category: productAnalysis.imageAnalysis.category,
+          brand: productAnalysis.imageAnalysis.brand,
+          condition: productAnalysis.imageAnalysis.condition || 'used',
+          price: productAnalysis.imageAnalysis.suggestedPrice || 0,
+          currency: 'USD',
+          tags: productAnalysis.imageAnalysis.tags || [],
+          marketPriceAnalysis: productAnalysis.priceComparison,
+          suggestedPrice: productAnalysis.imageAnalysis.suggestedPrice
+        };
+
+        // Update session state
+        session.state = 'ready_to_list';
       }
 
-      // Convert session messages to LangChain format
+      // Convert session messages to LangChain format with state-aware system prompt
+      const systemPrompt = this.getSystemPrompt(session.state || 'analyzing');
+      
+      // Add context about being ready to create listing
+      const enhancedSystemPrompt = session.state === 'ready_to_list' 
+        ? `${systemPrompt} 
+
+Product Analysis Complete: Based on the image analysis, we have identified a ${session.productData?.title} with a suggested price of $${session.productData?.suggestedPrice}. The user has all the information needed. Ask if they want to create a marketplace listing for this product.`
+        : systemPrompt;
+
       const langChainMessages = [
-        new SystemMessage(`You are a helpful marketplace assistant that helps users identify products and find pricing information. 
-        
-        Use the provided product analysis to give detailed, helpful responses about:
-        - Product identification and features
-        - Price comparison insights
-        - Shopping recommendations
-        - Market trends when relevant
-        
-        Be conversational and provide actionable advice.`),
+        new SystemMessage(enhancedSystemPrompt),
         ...session.messages.slice(0, -1).map(msg => 
           msg.role === 'user' 
             ? new HumanMessage(msg.content)

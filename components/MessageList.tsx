@@ -1,6 +1,7 @@
 'use client';
 
 import { ChatMessage, ProductAnalysis } from '@/types';
+import { useEffect, useRef } from 'react';
 
 interface MessageListProps {
   messages: ChatMessage[];
@@ -9,8 +10,23 @@ interface MessageListProps {
 }
 
 export default function MessageList({ messages, analysis, isLoading }: MessageListProps) {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
+
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div 
+      ref={containerRef}
+      className="flex-1 overflow-y-auto p-4 space-y-4 max-h-full scrollbar-thin"
+      style={{ scrollBehavior: 'smooth' }}
+    >
       {messages.length === 0 ? (
         <div className="text-center text-gray-500 mt-8">
           <div className="mb-4">
@@ -32,47 +48,52 @@ export default function MessageList({ messages, analysis, isLoading }: MessageLi
           <p className="text-sm">Upload an image of a product to get started with AI-powered analysis and price comparison</p>
         </div>
       ) : (
-        messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
+        <>
+          {messages.map((message) => (
             <div
-              className={`max-w-[70%] rounded-lg px-4 py-2 ${
-                message.role === 'user'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-900'
-              }`}
+              key={message.id}
+              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              {message.imageUrl && (
-                <div className="mb-2">
-                  <img
-                    src={message.imageUrl}
-                    alt="Uploaded"
-                    className="max-w-full h-auto rounded"
-                  />
+              <div
+                className={`max-w-[70%] rounded-lg px-4 py-2 ${
+                  message.role === 'user'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-900'
+                }`}
+              >
+                {message.imageUrl && (
+                  <div className="mb-2">
+                    <img
+                      src={message.imageUrl}
+                      alt="Uploaded"
+                      className="max-w-full h-auto rounded max-h-48 object-cover"
+                    />
+                  </div>
+                )}
+                <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                <p className={`text-xs mt-1 ${
+                  message.role === 'user' ? 'text-blue-100' : 'text-gray-500'
+                }`}>
+                  {new Date(message.timestamp).toLocaleTimeString()}
+                </p>
+              </div>
+            </div>
+          ))}
+          
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="bg-gray-100 rounded-lg px-4 py-2">
+                <div className="flex items-center space-x-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                  <span className="text-gray-600">Analyzing...</span>
                 </div>
-              )}
-              <p className="whitespace-pre-wrap">{message.content}</p>
-              <p className={`text-xs mt-1 ${
-                message.role === 'user' ? 'text-blue-100' : 'text-gray-500'
-              }`}>
-                {new Date(message.timestamp).toLocaleTimeString()}
-              </p>
+              </div>
             </div>
-          </div>
-        ))
-      )}
-      
-      {isLoading && (
-        <div className="flex justify-start">
-          <div className="bg-gray-100 rounded-lg px-4 py-2">
-            <div className="flex items-center space-x-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
-              <span className="text-gray-600">Analyzing...</span>
-            </div>
-          </div>
-        </div>
+          )}
+          
+          {/* Invisible div to scroll to */}
+          <div ref={messagesEndRef} />
+        </>
       )}
     </div>
   );
