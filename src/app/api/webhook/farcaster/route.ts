@@ -75,8 +75,8 @@ export async function POST(request: NextRequest) {
         );
         await sendFarcasterNotification({
           fid,
-          title: "Welcome to Imagine AI!",
-          body: "Hello from Imagine AI!",
+          title: "Welcome to Fc Marketplace!",
+          body: "Hello from Fc Marketplace!",
           notificationDetails: event.notificationDetails,
         });
       } else {
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
       await sendFarcasterNotification({
         fid,
         title: "Ding ding dong",
-        body: "Thank you for enabling notifications for Imagine AI!",
+        body: "Thank you for enabling notifications for Fc Marketplace!",
         notificationDetails: event.notificationDetails,
       });
       break;
