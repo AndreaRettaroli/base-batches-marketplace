@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ImageUploadProps {
   onImageSelect: (file: File) => void;
@@ -10,6 +11,7 @@ interface ImageUploadProps {
 export default function ImageUpload({ onImageSelect }: ImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleFileSelect = (file: File) => {
     if (file?.type.startsWith("image/")) {
@@ -49,6 +51,7 @@ export default function ImageUpload({ onImageSelect }: ImageUploadProps) {
         }}
         ref={fileInputRef}
         type="file"
+        {...(isMobile ? { capture: "environment" } : {})}
       />
 
       <Button
