@@ -24,10 +24,11 @@ export class ChatService {
 
   private static sessions: Map<string, ChatSession> = new Map();
 
-  static createSession(): ChatSession {
+  static createSession(userId: string): ChatSession {
     const id = uuidv4();
     const session: ChatSession = {
       id,
+      userId,
       messages: [],
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -158,7 +159,7 @@ export class ChatService {
     try {
       // Ensure required fields are present
       const productData = {
-        sellerId: `user_${session.id}`,
+        sellerId: session.userId,
         title: session.productData.title || "Untitled Product",
         description:
           session.productData.description || "No description provided",
@@ -186,6 +187,7 @@ export class ChatService {
   }
 
   static async sendMessage(
+    userId: string,
     sessionId: string,
     message: string,
     imageUrl?: string
@@ -194,7 +196,7 @@ export class ChatService {
     if (!session) {
       // Create a new session if it doesn't exist
       console.log(`Session ${sessionId} not found, creating new session`);
-      session = ChatService.createSession();
+      session = ChatService.createSession(userId);
       // Update the session ID to match the requested one
       session.id = sessionId;
       ChatService.sessions.set(sessionId, session);
@@ -278,6 +280,7 @@ export class ChatService {
   }
 
   static async sendMessageWithProductAnalysis(
+    userId: string,
     sessionId: string,
     message: string,
     // biome-ignore lint/suspicious/noExplicitAny: need here for mongodb
@@ -287,7 +290,7 @@ export class ChatService {
     if (!session) {
       // Create a new session if it doesn't exist
       console.log(`Session ${sessionId} not found, creating new session`);
-      session = ChatService.createSession();
+      session = ChatService.createSession(userId);
       // Update the session ID to match the requested one
       session.id = sessionId;
       ChatService.sessions.set(sessionId, session);
@@ -322,6 +325,8 @@ export class ChatService {
           )
           .join("\n")}`;
 
+        const imageUrl = productAnalysis.imageUrl ?? undefined;
+
         // Store product data in session
         session.productData = {
           title: productAnalysis.imageAnalysis.productName,
@@ -331,6 +336,7 @@ export class ChatService {
           condition: productAnalysis.imageAnalysis.condition || "used",
           price: productAnalysis.imageAnalysis.suggestedPrice || 0,
           currency: "USD",
+          images: imageUrl ? [imageUrl] : [],
           tags: productAnalysis.imageAnalysis.tags || [],
           marketPriceAnalysis: productAnalysis.priceComparison,
           suggestedPrice: productAnalysis.imageAnalysis.suggestedPrice,

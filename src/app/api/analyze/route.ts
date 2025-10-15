@@ -9,6 +9,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get("image") as File;
     const sessionId = formData.get("sessionId") as string;
+    const userId = formData.get("userId") as string;
     const message =
       (formData.get("message") as string) ||
       "Please analyze this image and find pricing information.";
@@ -23,6 +24,12 @@ export async function POST(request: NextRequest) {
     if (!sessionId) {
       return NextResponse.json(
         { error: "Session ID is required" },
+        { status: 400 }
+      );
+    }
+    if (!userId) {
+      return NextResponse.json(
+        { error: "User ID is required" },
         { status: 400 }
       );
     }
@@ -57,10 +64,12 @@ export async function POST(request: NextRequest) {
       imageAnalysis,
       priceComparison,
       searchQuery,
+      imageUrl: `data:image/jpeg;base64,${base64Image}`,
     };
 
     // Send message to chat with analysis results
     const chatResponse = await ChatService.sendMessageWithProductAnalysis(
+      userId,
       sessionId,
       message,
       productAnalysis

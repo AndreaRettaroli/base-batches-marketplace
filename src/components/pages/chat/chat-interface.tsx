@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
 import type { ChatMessage, ChatSession, ProductAnalysis } from "@/types";
@@ -23,7 +23,7 @@ export default function ChatInterface({
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState<ProductAnalysis | null>(null);
   const [showListingButton, setShowListingButton] = useState(false);
-  const _fileInputRef = useRef<HTMLInputElement>(null);
+  const [isAnalysisOpen, setIsAnalysisOpen] = useState(true);
 
   const handleSendMessage = async (message: string, image?: File) => {
     if (!(message.trim() || image)) {
@@ -37,6 +37,7 @@ export default function ChatInterface({
         // Handle image analysis
         const formData = new FormData();
         formData.append("image", image);
+        formData.append("userId", user?.id || "");
         formData.append("sessionId", session.id);
         formData.append(
           "message",
@@ -81,6 +82,7 @@ export default function ChatInterface({
           },
           body: JSON.stringify({
             sessionId: session.id,
+            userId: user?.id,
             message,
           }),
         });
@@ -193,7 +195,7 @@ Your listing is now live and potential buyers can find it. Would you like to lis
   }, [session.id, sellerId, onSessionUpdate, session]);
 
   return (
-    <div className="flex h-full flex-col rounded-lg border bg-white shadow-sm">
+    <div className="flex size-full flex-col rounded-lg border bg-white shadow-sm">
       {/* Messages Area */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <MessageList
@@ -204,64 +206,84 @@ Your listing is now live and potential buyers can find it. Would you like to lis
       </div>
       {/* Analysis Results */}
       {analysis && (
-        <div className="flex-shrink-0 border-t bg-gray-50 p-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <h3 className="mb-2 font-medium text-gray-900">
-                Product Analysis
-              </h3>
-              <div className="space-y-1 text-gray-600 text-sm">
-                <p>
-                  <strong>Product:</strong> {analysis.imageAnalysis.productName}
-                </p>
-                <p>
-                  <strong>Brand:</strong>{" "}
-                  {analysis.imageAnalysis.brand || "Not specified"}
-                </p>
-                <p>
-                  <strong>Category:</strong> {analysis.imageAnalysis.category}
-                </p>
-                <p>
-                  <strong>Condition:</strong>{" "}
-                  {analysis.imageAnalysis.condition || "Not specified"}
-                </p>
-                <p>
-                  <strong>Suggested Price:</strong> $
-                  {analysis.imageAnalysis.suggestedPrice}
-                </p>
-                {analysis.imageAnalysis.tags &&
-                  analysis.imageAnalysis.tags.length > 0 && (
-                    <p>
-                      <strong>Tags:</strong>{" "}
-                      {analysis.imageAnalysis.tags.join(", ")}
-                    </p>
-                  )}
-              </div>
-            </div>
-            <div>
-              <h3 className="mb-2 font-medium text-gray-900">
-                Market Research
-              </h3>
-              <div className="max-h-32 space-y-2 overflow-y-auto">
-                {analysis.priceComparison.slice(0, 4).map((price, index) => (
-                  <div
-                    className="flex items-center justify-between text-sm"
-                    key={`price-comparison-${price.price.toLowerCase()}-${index}`}
-                  >
-                    <span className="font-medium">{price.platform}</span>
-                    <div className="text-right">
-                      <div className="font-semibold text-green-600">
-                        {price.price}
-                      </div>
-                      <div className="text-gray-500 text-xs">
-                        {price.availability}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+        <div className="flex-shrink-0 border-t bg-gray-50">
+          <div className="flex items-center justify-between p-4">
+            <h3 className="font-medium text-gray-900">Analysis Results</h3>
+            <Button
+              aria-controls="analysis-content"
+              aria-expanded={isAnalysisOpen}
+              onClick={() => setIsAnalysisOpen((open) => !open)}
+              size="sm"
+              variant="ghost"
+            >
+              {isAnalysisOpen ? "− Minimize" : "+ Expand"}
+            </Button>
           </div>
+          {isAnalysisOpen && (
+            <div className="p-4 pt-0" id="analysis-content">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <h3 className="mb-2 font-medium text-gray-900">
+                    Product Analysis
+                  </h3>
+                  <div className="space-y-1 text-gray-600 text-sm">
+                    <p>
+                      <strong>Product:</strong>{" "}
+                      {analysis.imageAnalysis.productName}
+                    </p>
+                    <p>
+                      <strong>Brand:</strong>{" "}
+                      {analysis.imageAnalysis.brand || "Not specified"}
+                    </p>
+                    <p>
+                      <strong>Category:</strong>{" "}
+                      {analysis.imageAnalysis.category}
+                    </p>
+                    <p>
+                      <strong>Condition:</strong>{" "}
+                      {analysis.imageAnalysis.condition || "Not specified"}
+                    </p>
+                    <p>
+                      <strong>Suggested Price:</strong> $
+                      {analysis.imageAnalysis.suggestedPrice}
+                    </p>
+                    {analysis.imageAnalysis.tags &&
+                      analysis.imageAnalysis.tags.length > 0 && (
+                        <p>
+                          <strong>Tags:</strong>{" "}
+                          {analysis.imageAnalysis.tags.join(", ")}
+                        </p>
+                      )}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="mb-2 font-medium text-gray-900">
+                    Market Research
+                  </h3>
+                  <div className="max-h-32 space-y-2 overflow-y-auto">
+                    {analysis.priceComparison
+                      .slice(0, 4)
+                      .map((price, index) => (
+                        <div
+                          className="flex items-center justify-between text-sm"
+                          key={`price-comparison-${price.price.toLowerCase()}-${index}`}
+                        >
+                          <span className="font-medium">{price.platform}</span>
+                          <div className="text-right">
+                            <div className="font-semibold text-green-600">
+                              {price.price}
+                            </div>
+                            <div className="text-gray-500 text-xs">
+                              {price.availability}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}{" "}
       {/* Create Listing Button */}

@@ -7,6 +7,7 @@ import {
 import type { NextRequest } from "next/server";
 import { fetchUserFromNeynar } from "@/lib/neynar";
 import { DatabaseService } from "@/services/database.service";
+import { formatAvatarSrc } from "@/utils";
 import { sendFarcasterNotification } from "@/utils/farcaster";
 
 export async function POST(request: NextRequest) {
@@ -54,12 +55,20 @@ export async function POST(request: NextRequest) {
       console.error("FID not found in Neynar", fid);
       throw new Error("Farcaster user not found in Neynar");
     }
+    const walletAddress = userFromNeynar.verified_addresses.primary.eth_address;
+    if (!walletAddress) {
+      console.error("Wallet address not found in Neynar", fid);
+      throw new Error("Wallet address not found in Neynar");
+    }
     dbUser = await DatabaseService.createFarcasterUser({
+      walletAddress,
       farcasterFid: fid,
       farcasterNotificationDetails: undefined,
       email: `${fid}@farcaster.emails`,
       name: userFromNeynar.username,
-      avatar: userFromNeynar.pfp_url ?? undefined,
+      avatar: userFromNeynar.pfp_url
+        ? formatAvatarSrc(userFromNeynar.pfp_url)
+        : undefined,
     });
   }
   if (!dbUser) {

@@ -1,9 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { ChatService } from "@/services/chat.service";
 
-export async function POST(): Promise<NextResponse> {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const session = await ChatService.createSession();
+    const body = await request.json();
+    if (!body.userId) {
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 400 }
+      );
+    }
+    const session = await ChatService.createSession(body.userId);
     return NextResponse.json({ session });
   } catch (error) {
     console.error("Session creation error:", error);

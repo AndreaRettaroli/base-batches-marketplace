@@ -36,6 +36,7 @@ export interface ProductAnalysis {
 
 export interface ChatSession {
   id: string;
+  userId: string;
   messages: ChatMessage[];
   createdAt: Date;
   updatedAt: Date;
@@ -74,6 +75,7 @@ export interface UserProfile {
   id: string;
   farcasterFid?: number;
   farcasterNotificationDetails?: MiniAppNotificationDetails;
+  walletAddress: string;
   email: string;
   name: string;
   avatar?: string;

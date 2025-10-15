@@ -3,16 +3,17 @@ import { ChatService } from "@/services/chat.service";
 
 export async function POST(request: NextRequest) {
   try {
-    const { sessionId, message, imageUrl } = await request.json();
+    const { userId, sessionId, message, imageUrl } = await request.json();
 
-    if (!(sessionId && message)) {
+    if (!(userId && sessionId && message)) {
       return NextResponse.json(
-        { error: "Session ID and message are required" },
+        { error: "User ID, session ID and message are required" },
         { status: 400 }
       );
     }
 
     const response = await ChatService.sendMessage(
+      userId,
       sessionId,
       message,
       imageUrl

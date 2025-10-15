@@ -18,7 +18,11 @@ import { formatAvatarSrc } from "@/utils/index";
 
 const NAME_SPLIT_REGEX = /\s+/g;
 
-export const UserButton = () => {
+export const UserButton = ({
+  setActivePage,
+}: {
+  setActivePage: (page: "home" | "chat" | "profile") => void;
+}) => {
   const { user, isAuthenticated, isLoading, isSigningIn, signInWithFarcaster } =
     useAuth();
   const { address } = useAccount();
@@ -62,15 +66,17 @@ export const UserButton = () => {
               <Avatar>
                 <AvatarImage
                   alt={user?.name || "User"}
-                  src={user?.avatar || "/images/default-image.png"}
+                  src={
+                    user?.avatar
+                      ? formatAvatarSrc(user.avatar)
+                      : "/images/default-image.png"
+                  }
                 />
                 <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
             </div>
           ) : (
-            <span>
-              {isLoading || isSigningIn ? "Connecting…" : "Connect Farcaster"}
-            </span>
+            <span>{isLoading || isSigningIn ? "…" : "Connect Farcaster"}</span>
           )}
         </Button>
       </DropdownMenuTrigger>
@@ -117,11 +123,10 @@ export const UserButton = () => {
                 <DropdownMenuSeparator />
               </>
             ) : null}
-            <DropdownMenuItem disabled>View profile</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem disabled variant="destructive">
-              Sign out
+            <DropdownMenuItem onClick={() => setActivePage("profile")}>
+              View profile
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
           </>
         ) : (
           <>
@@ -132,9 +137,7 @@ export const UserButton = () => {
                 handleConnect();
               }}
             >
-              {isLoading || isSigningIn
-                ? "Connecting…"
-                : "Connect with Farcaster"}
+              {isLoading || isSigningIn ? "…" : "Login"}
             </DropdownMenuItem>
           </>
         )}

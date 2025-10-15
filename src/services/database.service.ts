@@ -22,10 +22,39 @@ export const connectDatabase = async () => {
   }
 };
 
+// User Schema
+const farcasterNotificationDetailsSchema = new mongoose.Schema({
+  token: { type: String, required: true },
+  url: { type: String, required: true },
+});
+
+// User Profile Schema
+const userSchema = new mongoose.Schema(
+  {
+    email: { type: String, required: true, unique: true },
+    name: { type: String, required: true },
+    avatar: { type: String },
+    location: { type: String },
+    farcasterFid: { type: Number, required: false, unique: true },
+    farcasterNotificationDetails: { type: farcasterNotificationDetailsSchema },
+    walletAddress: { type: String, required: true },
+    rating: { type: Number, default: 0 },
+    totalSales: { type: Number, default: 0 },
+    totalPurchases: { type: Number, default: 0 },
+  },
+  {
+    timestamps: true,
+  }
+);
+
 // Product Schema
 const productSchema = new mongoose.Schema(
   {
-    sellerId: { type: String, required: true },
+    sellerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     title: { type: String, required: true },
     description: { type: String, required: true },
     category: { type: String, required: true },
@@ -57,29 +86,6 @@ const productSchema = new mongoose.Schema(
     },
     views: { type: Number, default: 0 },
     favorites: { type: Number, default: 0 },
-  },
-  {
-    timestamps: true,
-  }
-);
-
-const farcasterNotificationDetailsSchema = new mongoose.Schema({
-  token: { type: String, required: true },
-  url: { type: String, required: true },
-});
-
-// User Profile Schema
-const userSchema = new mongoose.Schema(
-  {
-    email: { type: String, required: true, unique: true },
-    name: { type: String, required: true },
-    avatar: { type: String },
-    location: { type: String },
-    farcasterFid: { type: Number, required: false, unique: true },
-    farcasterNotificationDetails: { type: farcasterNotificationDetailsSchema },
-    rating: { type: Number, default: 0 },
-    totalSales: { type: Number, default: 0 },
-    totalPurchases: { type: Number, default: 0 },
   },
   {
     timestamps: true,
@@ -127,10 +133,12 @@ export class DatabaseService {
       if (!product) {
         return null;
       }
+      const seller = await User.findById(product.sellerId);
 
       return {
         id: product._id.toString(),
         ...product.toObject(),
+        seller,
         createdAt: product.createdAt,
         updatedAt: product.updatedAt,
       };
@@ -142,15 +150,19 @@ export class DatabaseService {
 
   static async getProductsBySeller(
     sellerId: string
-  ): Promise<MarketplaceProduct[]> {
+  ): Promise<(MarketplaceProduct & { seller: UserProfile })[]> {
     await connectDatabase();
 
     try {
-      const products = await Product.find({ sellerId }).sort({ createdAt: -1 });
+      const [products, seller] = await Promise.all([
+        Product.find({ sellerId }).sort({ createdAt: -1 }),
+        User.findById(sellerId),
+      ]);
 
       return products.map((product) => ({
         id: product._id.toString(),
         ...product.toObject(),
+        seller,
         createdAt: product.createdAt,
         updatedAt: product.updatedAt,
       }));
@@ -163,7 +175,7 @@ export class DatabaseService {
   static async searchProducts(
     query: string,
     category?: string
-  ): Promise<MarketplaceProduct[]> {
+  ): Promise<(MarketplaceProduct & { seller: UserProfile })[]> {
     await connectDatabase();
 
     try {
@@ -186,12 +198,23 @@ export class DatabaseService {
         .sort({ createdAt: -1 })
         .limit(20);
 
-      return products.map((product) => ({
-        id: product._id.toString(),
-        ...product.toObject(),
-        createdAt: product.createdAt,
-        updatedAt: product.updatedAt,
-      }));
+      const productsWithSeller: (MarketplaceProduct & {
+        seller: UserProfile;
+      })[] = [];
+      for (const product of products) {
+        const seller = await User.findById(product.sellerId);
+        if (seller) {
+          productsWithSeller.push({
+            id: product._id.toString(),
+            ...product.toObject(),
+            seller,
+            createdAt: product.createdAt,
+            updatedAt: product.updatedAt,
+          });
+        }
+      }
+
+      return productsWithSeller;
     } catch (error) {
       console.error("❌ Error searching products:", error);
       return [];
