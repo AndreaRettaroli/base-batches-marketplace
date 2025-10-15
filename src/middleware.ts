@@ -1,5 +1,5 @@
-import * as jose from "jose";
-import { NextRequest, NextResponse } from "next/server";
+import { jwtVerify } from "jose";
+import { type NextRequest, NextResponse } from "next/server";
 import { env } from "./lib/env";
 
 export const config = {
@@ -34,7 +34,7 @@ export default async function middleware(req: NextRequest) {
   try {
     const secret = new TextEncoder().encode(env.JWT_SECRET);
     // Verify the token using jose
-    const { payload } = await jose.jwtVerify(authToken, secret);
+    const { payload } = await jwtVerify(authToken, secret);
 
     // Clone the request headers to add user info
     const requestHeaders = new Headers(req.headers);

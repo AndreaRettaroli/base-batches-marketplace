@@ -1,6 +1,10 @@
+import { jsonrepair } from "jsonrepair";
 import OpenAI from "openai";
+import { z } from "zod";
 import { env } from "@/lib/env";
 import type { ImageAnalysisResult } from "../types";
+
+const imageAnalysisResultSchema = z.custom<ImageAnalysisResult>();
 
 const openai = new OpenAI({
   apiKey: env.OPENAI_API_KEY,
@@ -71,8 +75,17 @@ Do not include any text before or after the JSON. Analyze the image carefully an
           jsonString = jsonMatch[0];
         }
 
-        console.log("🚀 ~ Attempting to parse JSON:", jsonString);
-        const result = JSON.parse(jsonString) as ImageAnalysisResult;
+        // repair the eventually broken json string with jsonrepair
+        const repairedJsonString = jsonrepair(jsonString);
+        console.log("🚀 ~ Attempting to parse JSON:", repairedJsonString);
+        const jsonParsed = JSON.parse(repairedJsonString);
+
+        // safely parse with zod schema
+        const schemaResult = imageAnalysisResultSchema.safeParse(jsonParsed);
+        if (!schemaResult.success) {
+          throw new Error("Invalid JSON schema");
+        }
+        const result = schemaResult.data;
 
         // Validate the result has required fields
         if (!(result.productName && result.category)) {

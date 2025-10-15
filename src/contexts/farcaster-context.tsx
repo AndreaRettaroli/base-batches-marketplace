@@ -94,6 +94,16 @@ export function FarcasterProvider({
             err instanceof Error ? err.message : "Failed to get capabilities"
           );
         }
+
+        // Check if camera/microphone is available before asking for permission
+        if (tmpContext.features?.cameraAndMicrophoneAccess) {
+          console.log("Camera/microphone not available");
+        } else {
+          await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false,
+          });
+        }
       } else {
         setError("Failed to load Farcaster context");
         setIsInMiniApp(false);

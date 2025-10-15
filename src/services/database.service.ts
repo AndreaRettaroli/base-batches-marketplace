@@ -63,6 +63,11 @@ const productSchema = new mongoose.Schema(
   }
 );
 
+const farcasterNotificationDetailsSchema = new mongoose.Schema({
+  token: { type: String, required: true },
+  url: { type: String, required: true },
+});
+
 // User Profile Schema
 const userSchema = new mongoose.Schema(
   {
@@ -70,6 +75,8 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true },
     avatar: { type: String },
     location: { type: String },
+    farcasterFid: { type: Number, required: false, unique: true },
+    farcasterNotificationDetails: { type: farcasterNotificationDetailsSchema },
     rating: { type: Number, default: 0 },
     totalSales: { type: Number, default: 0 },
     totalPurchases: { type: Number, default: 0 },

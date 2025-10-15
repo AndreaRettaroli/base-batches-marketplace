@@ -243,10 +243,10 @@ Your listing is now live and potential buyers can find it. Would you like to lis
                 Market Research
               </h3>
               <div className="max-h-32 space-y-2 overflow-y-auto">
-                {analysis.priceComparison.slice(0, 4).map((price, _index) => (
+                {analysis.priceComparison.slice(0, 4).map((price, index) => (
                   <div
                     className="flex items-center justify-between text-sm"
-                    key={price.platform}
+                    key={`price-comparison-${price.price.toLowerCase()}-${index}`}
                   >
                     <span className="font-medium">{price.platform}</span>
                     <div className="text-right">
