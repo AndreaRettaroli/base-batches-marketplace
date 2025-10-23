@@ -28,7 +28,7 @@ export const Navbar = ({
         </div>
       </div>
       <p className="mt-1 text-gray-600">
-        Upload product images to get AI-powered analysis and price comparisons
+        Buy and sell Products with AI-powered insights
       </p>
     </div>
   </header>
