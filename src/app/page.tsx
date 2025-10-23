@@ -12,7 +12,7 @@ export function generateMetadata(): Metadata {
       title: "Launch App",
       action: {
         type: "launch_miniapp",
-        name: "Fc Marketplace",
+        name: "Marketplace",
         url: appUrl,
         splashImageUrl: `${appUrl}/images/icon.png`,
         splashBackgroundColor: "#ffffff",
@@ -20,12 +20,12 @@ export function generateMetadata(): Metadata {
     },
   };
   return {
-    title: "Fc Marketplace",
-    description: "Fc Marketplace",
+    title: "Marketplace",
+    description: "Marketplace",
     metadataBase: new URL(appUrl),
     openGraph: {
-      title: "Fc Marketplace",
-      description: "Fc Marketplace",
+      title: "Marketplace",
+      description: "Marketplace",
       type: "website",
       images: [
         {
@@ -37,8 +37,8 @@ export function generateMetadata(): Metadata {
     },
     twitter: {
       card: "summary_large_image",
-      title: "Fc Marketplace",
-      description: "Fc Marketplace",
+      title: "Marketplace",
+      description: "Marketplace",
       siteId: "1727435024931094528",
       creator: "@builders_garden",
       creatorId: "1727435024931094528",
