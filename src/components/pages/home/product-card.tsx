@@ -1,8 +1,10 @@
 "use client";
 
 import { sdk as farcasterSdk } from "@farcaster/miniapp-sdk";
-import { EyeIcon, ShoppingCartIcon, XIcon } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { EyeIcon, ShoppingCartIcon, TrashIcon, XIcon } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 import { parseUnits } from "viem";
 import { ProductDialog } from "@/components/product-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -24,14 +26,45 @@ import {
   CredenzaTitle,
   CredenzaTrigger,
 } from "@/components/ui/credenza";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { useApiMutation } from "@/hooks/use-api-mutation";
 import type { MarketplaceProduct, UserProfile } from "@/types";
+
 export const ProductCard = ({
   product,
+  showDeleteButton = false,
 }: {
   product: MarketplaceProduct & { seller: UserProfile };
+  showDeleteButton?: boolean;
 }) => {
   const imageSrc = product.images[0] || "/images/default-image.png";
+  const queryClient = useQueryClient();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const deleteMutation = useApiMutation({
+    url: `/api/listings?productId=${product.id}`,
+    method: "DELETE",
+    onSuccess: () => {
+      // Invalidate the products query to refresh the list
+      queryClient.invalidateQueries({
+        queryKey: ["products"],
+      });
+      setShowDeleteDialog(false);
+    },
+    onError: (error) => {
+      console.error("Error deleting product:", error);
+      // You could add a toast notification here instead of alert
+    },
+  });
 
   const handleBuy = async () => {
     console.log("Buy", product);
@@ -40,6 +73,10 @@ export const ProductCard = ({
       amount: parseUnits(product.price.toString(), 6).toString(),
       recipientAddress: product.seller.walletAddress,
     });
+  };
+
+  const handleDelete = async () => {
+    await deleteMutation.mutateAsync({});
   };
 
   return (
@@ -102,9 +139,46 @@ export const ProductCard = ({
                 </ScrollArea>
               </CredenzaBody>
               <CredenzaFooter className="flex flex-col gap-2">
-                <Button onClick={handleBuy} variant="default">
-                  <ShoppingCartIcon className="size-4" /> Buy
-                </Button>
+                {showDeleteButton ? (
+                  <Dialog
+                    onOpenChange={setShowDeleteDialog}
+                    open={showDeleteDialog}
+                  >
+                    <DialogTrigger asChild>
+                      <Button variant="destructive">
+                        <TrashIcon className="size-4" /> Delete
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Confirm Deletion</DialogTitle>
+                        <DialogDescription>
+                          Are you sure you want to delete this product? This
+                          action cannot be undone.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter>
+                        <Button
+                          onClick={() => setShowDeleteDialog(false)}
+                          variant="outline"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          disabled={deleteMutation.isPending}
+                          onClick={handleDelete}
+                          variant="destructive"
+                        >
+                          {deleteMutation.isPending ? "Deleting..." : "Delete"}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                ) : (
+                  <Button onClick={handleBuy} variant="default">
+                    <ShoppingCartIcon className="size-4" /> Buy
+                  </Button>
+                )}
                 <CredenzaClose asChild>
                   <Button variant="outline">
                     <XIcon className="size-4" /> Close
@@ -113,9 +187,43 @@ export const ProductCard = ({
               </CredenzaFooter>
             </CredenzaContent>
           </Credenza>
-          <Button onClick={handleBuy} variant="default">
-            <ShoppingCartIcon className="size-4" /> Buy
-          </Button>
+          {showDeleteButton ? (
+            <Dialog onOpenChange={setShowDeleteDialog} open={showDeleteDialog}>
+              <DialogTrigger asChild>
+                <Button variant="destructive">
+                  <TrashIcon className="size-4" /> Delete
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Confirm Deletion</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to delete this product? This action
+                    cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button
+                    onClick={() => setShowDeleteDialog(false)}
+                    variant="outline"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    disabled={deleteMutation.isPending}
+                    onClick={handleDelete}
+                    variant="destructive"
+                  >
+                    {deleteMutation.isPending ? "Deleting..." : "Delete"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          ) : (
+            <Button onClick={handleBuy} variant="default">
+              <ShoppingCartIcon className="size-4" /> Buy
+            </Button>
+          )}
         </div>
       </CardFooter>
     </Card>

@@ -6,11 +6,13 @@ export const useGetListings = ({
   query,
   category,
   sellerId,
+  excludeSellerId,
 }: {
   enabled: boolean;
   query?: string;
   category?: string;
   sellerId?: string;
+  excludeSellerId?: string;
 }) => {
   const params = new URLSearchParams();
   if (query) {
@@ -21,6 +23,9 @@ export const useGetListings = ({
   }
   if (sellerId) {
     params.set("sellerId", sellerId);
+  }
+  if (excludeSellerId) {
+    params.set("excludeSellerId", excludeSellerId);
   }
 
   const url = `/api/listings${params.toString() ? `?${params.toString()}` : ""}`;
@@ -38,6 +43,7 @@ export const useGetListings = ({
         q: query ?? null,
         category: category ?? null,
         sellerId: sellerId ?? null,
+        excludeSellerId: excludeSellerId ?? null,
       },
     ],
     isProtected: true,

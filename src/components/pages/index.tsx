@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import type { ChatSession } from "@/types";
+import { BottomNav } from "./bottom-nav";
 import { ChatPage } from "./chat";
 import { HomePage } from "./home";
 import { Navbar } from "./navbar";
@@ -91,16 +92,13 @@ export function AppPage() {
 
   return (
     <div className="flex h-screen flex-col bg-gray-50">
-      <Navbar
-        handleCreateNewChat={handleCreateNewChat}
-        setActivePage={setActivePage}
-      />
+      <Navbar setActivePage={setActivePage} />
 
-      <main className="mx-auto w-full max-w-7xl flex-1 overflow-hidden px-4 py-4 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-7xl flex-1 overflow-y-auto px-4 py-4 pb-20 sm:px-6 lg:px-8">
         {activePage === "home" ? (
           <HomePage />
         ) : activePage === "profile" ? (
-          <ProfilePage />
+          <ProfilePage onCreateNewChat={handleCreateNewChat} />
         ) : activePage === "chat" ? (
           <ChatPage
             currentSession={currentSession}
@@ -108,6 +106,8 @@ export function AppPage() {
           />
         ) : null}
       </main>
+
+      <BottomNav activePage={activePage} setActivePage={setActivePage} />
     </div>
   );
 }

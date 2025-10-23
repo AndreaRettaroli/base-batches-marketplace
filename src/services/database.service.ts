@@ -174,7 +174,8 @@ export class DatabaseService {
 
   static async searchProducts(
     query: string,
-    category?: string
+    category?: string,
+    excludeSellerId?: string
   ): Promise<(MarketplaceProduct & { seller: UserProfile })[]> {
     await connectDatabase();
 
@@ -192,6 +193,11 @@ export class DatabaseService {
 
       if (category) {
         searchFilter.category = category;
+      }
+
+      // Add exclusion filter
+      if (excludeSellerId) {
+        searchFilter.sellerId = { $ne: excludeSellerId };
       }
 
       const products = await Product.find(searchFilter)

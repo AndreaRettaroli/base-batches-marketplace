@@ -7,27 +7,21 @@ export async function GET(request: NextRequest) {
     const query = searchParams.get("q");
     const category = searchParams.get("category");
     const sellerId = searchParams.get("sellerId");
+    const excludeSellerId = searchParams.get("excludeSellerId");
 
-    if (sellerId) {
-      // Get products by seller
+    if (sellerId && !excludeSellerId) {
+      // Profile view - show all products by this seller
       const products = await DatabaseService.getProductsBySeller(sellerId);
       return NextResponse.json({ products });
     }
 
-    if (query) {
-      // Search products
-      const products = await DatabaseService.searchProducts(
-        query,
-        category || undefined
-      );
-      return NextResponse.json({ products });
-    }
-
-    // Get all active products (limit to recent ones)
+    // Marketplace view - exclude specified seller's products
     const products = await DatabaseService.searchProducts(
-      "",
-      category || undefined
+      query || "",
+      category || undefined,
+      excludeSellerId || undefined // Exclude specified seller's products
     );
+
     return NextResponse.json({ products: products.slice(0, 20) });
   } catch (error) {
     console.error("Listings API error:", error);
