@@ -6,7 +6,22 @@ import { AuthProvider } from "@/contexts/auth-context";
 import { FarcasterProvider } from "@/contexts/farcaster-context";
 import { wagmiConfig } from "@/lib/wagmi";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      retry: (failureCount, error) => {
+        // Don't retry on client errors (4xx) 
+        if (error instanceof Error && error.message.includes("4")) {
+          return false;
+        }
+        return failureCount < 2;
+      },
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 export default function Providers({
   children,

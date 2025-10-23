@@ -56,6 +56,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [hasTriedInitialAuth, setHasTriedInitialAuth] = useState(false);
+  const [lastSignInAttempt, setLastSignInAttempt] = useState<number>(0);
 
   // Single user query - this is the only place we fetch user data
   // Always try to fetch on load to check for existing valid token
@@ -92,9 +93,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       throw new Error("Not in mini app");
     }
 
+    // Prevent rapid successive sign-in attempts
+    const now = Date.now();
+    if (now - lastSignInAttempt < 5000) { // 5 second cooldown
+      console.log("Sign-in attempt blocked due to cooldown");
+      return;
+    }
+
     try {
       setIsSigningIn(true);
       setError(null);
+      setLastSignInAttempt(now);
 
       const referrerFid =
         miniAppContext.location?.type === "cast_embed"
@@ -119,7 +128,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       );
       setIsSigningIn(false);
     }
-  }, [miniAppContext, farcasterSignIn]);
+  }, [miniAppContext, farcasterSignIn, lastSignInAttempt]);
 
   // Auto sign-in logic (production / normal flow) -----------------------------------------------
   useEffect(() => {
@@ -161,7 +170,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
 
     // Auto sign-in with Farcaster if in miniapp and not authenticated
-    if (isInMiniApp && miniAppContext && !authUser) {
+    // Add additional checks to prevent repeated sign-ins
+    if (isInMiniApp && miniAppContext && !authUser && !isSignedIn) {
+      console.log("Attempting Farcaster auto sign-in");
       signInWithFarcaster();
     }
   }, [
@@ -173,7 +184,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     isFetchedAuthUser,
     miniAppContext,
     isSigningIn,
-    signInWithFarcaster,
+    isSignedIn,
+    // Remove signInWithFarcaster from dependencies to prevent reference changes from triggering re-runs
   ]);
   // NOTE: logoutMutation intentionally excluded to prevent infinite loops
 

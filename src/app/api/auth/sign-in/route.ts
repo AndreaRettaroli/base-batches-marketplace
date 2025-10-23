@@ -9,12 +9,18 @@ import { formatAvatarSrc } from "@/utils";
 const quickAuthClient = createClient();
 
 export const POST = async (req: NextRequest) => {
+  console.log("🔐 Sign-in attempt at:", new Date().toISOString());
+  
   const {
     token: farcasterToken,
     fid: contextFid,
     referrerFid,
   } = await req.json();
+  
+  console.log("🔐 Sign-in for FID:", contextFid);
+  
   if (!(farcasterToken && contextFid) || Number.isNaN(Number(contextFid))) {
+    console.log("❌ Invalid arguments for sign-in");
     return NextResponse.json(
       { success: false, error: "Invalid arguments" },
       { status: 400 }
@@ -85,6 +91,8 @@ export const POST = async (req: NextRequest) => {
       { success: true, user: dbUser },
       { status: 200 }
     );
+
+    console.log("✅ Sign-in successful for FID:", fid, "User ID:", dbUser.id);
 
     // Set the auth cookie with the JWT token
     response.cookies.set({
