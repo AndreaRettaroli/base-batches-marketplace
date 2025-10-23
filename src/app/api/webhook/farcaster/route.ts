@@ -84,8 +84,8 @@ export async function POST(request: NextRequest) {
         );
         await sendFarcasterNotification({
           fid,
-          title: "Welcome to Fc Marketplace!",
-          body: "Hello from Fc Marketplace!",
+          title: "Welcome to Marketplace!",
+          body: "Hello from Marketplace!",
           notificationDetails: event.notificationDetails,
         });
       } else {
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
       await sendFarcasterNotification({
         fid,
         title: "Ding ding dong",
-        body: "Thank you for enabling notifications for Fc Marketplace!",
+        body: "Thank you for enabling notifications for Marketplace!",
         notificationDetails: event.notificationDetails,
       });
       break;
