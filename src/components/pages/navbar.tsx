@@ -21,7 +21,7 @@ export const Navbar = ({
             src="/images/icon.png"
             width={32}
           />
-          <h1 className="font-bold text-gray-900 text-xl">Fc Marketplace</h1>
+          <h1 className="font-bold text-gray-900 text-xl">arketplace</h1>
         </div>
         <div className="flex items-center gap-1">
           <UserButton setActivePage={setActivePage} />
