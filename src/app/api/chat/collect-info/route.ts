@@ -13,13 +13,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await ChatService.collectAdditionalInfo(sessionId, infoType, value);
-
+    // Update product data for the session
     const session = ChatService.getSession(sessionId);
+    if (session && session.productData) {
+      session.productData = { ...session.productData, [infoType]: value };
+    }
 
     return NextResponse.json({
       success: true,
-      sessionState: session?.state,
+      flowStep: session?.flowStep,
       productData: session?.productData,
     });
   } catch (error) {

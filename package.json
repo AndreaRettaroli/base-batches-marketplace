@@ -11,6 +11,7 @@
     "lint": "biome check ."
   },
   "dependencies": {
+    "@ai-sdk/openai": "^2.0.53",
     "@farcaster/miniapp-core": "^0.4.0",
     "@farcaster/miniapp-node": "^0.1.10",
     "@farcaster/miniapp-sdk": "^0.2.0",
@@ -30,6 +31,7 @@
     "@types/mongoose": "^5.11.96",
     "@types/multer": "^2.0.0",
     "@types/uuid": "^10.0.0",
+    "ai": "^5.0.77",
     "axios": "^1.12.2",
     "cheerio": "^1.1.2",
     "class-variance-authority": "^0.7.1",

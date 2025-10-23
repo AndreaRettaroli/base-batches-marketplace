@@ -40,13 +40,12 @@ export interface ChatSession {
   messages: ChatMessage[];
   createdAt: Date;
   updatedAt: Date;
-  state?:
-    | "initial"
-    | "analyzing"
-    | "gathering_details"
-    | "ready_to_list"
-    | "listed";
+  flowStep?: {
+    step: "analyze" | "propose_listing" | "gather_details" | "confirm_listing" | "list_product";
+    data?: any;
+  };
   productData?: Partial<MarketplaceProduct>;
+  conversationHistory?: any[];
 }
 
 export interface MarketplaceProduct {

@@ -30,7 +30,7 @@ export class ImageAnalysisService {
   "characteristics": ["color", "size", "material", "style", "condition indicators", "other features"],
   "confidence": 0.85,
   "condition": "new|used|refurbished|vintage",
-  "suggestedPrice": 25.99,
+  "suggestedPrice": "realistic price in USD based on condition and analysis results",
   "tags": ["relevant", "searchable", "keywords"]
 }
 

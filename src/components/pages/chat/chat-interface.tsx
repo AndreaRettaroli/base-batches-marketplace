@@ -33,6 +33,38 @@ export default function ChatInterface({
     try {
       setIsLoading(true);
 
+      // Create user message immediately for display
+      let imageUrl: string | undefined;
+      if (image) {
+        // Convert image to base64 for immediate display
+        const reader = new FileReader();
+        await new Promise<void>((resolve) => {
+          reader.onload = () => {
+            imageUrl = reader.result as string;
+            resolve();
+          };
+          reader.readAsDataURL(image);
+        });
+      }
+
+      // Add user message to session immediately
+      const userMessage: ChatMessage = {
+        id: Date.now().toString(),
+        role: "user",
+        content:
+          message || "Please analyze this image and find pricing information.",
+        timestamp: new Date(),
+        imageUrl,
+      };
+
+      // Update session with user message immediately
+      const sessionWithUserMessage: ChatSession = {
+        ...session,
+        messages: [...session.messages, userMessage],
+        updatedAt: new Date(),
+      };
+      onSessionUpdate(sessionWithUserMessage);
+
       if (image) {
         // Handle image analysis
         const formData = new FormData();
@@ -56,23 +88,14 @@ export default function ChatInterface({
         const data = await response.json();
         setAnalysis(data.analysis);
 
-        // Fetch the complete updated session
-        const sessionResponse = await fetch(
-          `/api/chat?sessionId=${session.id}`
-        );
-        if (sessionResponse.ok) {
-          const sessionData = await sessionResponse.json();
-          onSessionUpdate(sessionData.session);
-        } else {
-          // Fallback: manually update session
-          const updatedSession: ChatSession = {
-            ...session,
-            messages: [...session.messages, data.chatResponse],
-            updatedAt: new Date(),
-            state: "gathering_details" as const,
-          };
-          onSessionUpdate(updatedSession);
-        }
+        // Don't fetch session again, just add the AI response to current session
+        const updatedSession: ChatSession = {
+          ...sessionWithUserMessage,
+          messages: [...sessionWithUserMessage.messages, data.chatResponse],
+          updatedAt: new Date(),
+          flowStep: { step: "gather_details" as const },
+        };
+        onSessionUpdate(updatedSession);
       } else {
         // Handle text-only message
         const response = await fetch("/api/chat", {
@@ -93,22 +116,13 @@ export default function ChatInterface({
 
         const data = await response.json();
 
-        // Fetch the complete updated session instead of manually managing messages
-        const sessionResponse = await fetch(
-          `/api/chat?sessionId=${session.id}`
-        );
-        if (sessionResponse.ok) {
-          const sessionData = await sessionResponse.json();
-          onSessionUpdate(sessionData.session);
-        } else {
-          // Fallback: just add the AI response if session fetch fails
-          const updatedSession = {
-            ...session,
-            messages: [...session.messages, data.message],
-            updatedAt: new Date(),
-          };
-          onSessionUpdate(updatedSession);
-        }
+        // Don't fetch session again, just add the AI response to current session
+        const updatedSession = {
+          ...sessionWithUserMessage,
+          messages: [...sessionWithUserMessage.messages, data.message],
+          updatedAt: new Date(),
+        };
+        onSessionUpdate(updatedSession);
 
         // Check if ready to show listing button
         if (
@@ -205,7 +219,7 @@ Your listing is now live and potential buyers can find it. Would you like to lis
         />
       </div>
       {/* Analysis Results */}
-      {analysis && (
+      {/* {analysis && (
         <div className="flex-shrink-0 border-t bg-gray-50">
           <div className="flex items-center justify-between p-4">
             <h3 className="font-medium text-gray-900">Analysis Results</h3>
@@ -285,7 +299,7 @@ Your listing is now live and potential buyers can find it. Would you like to lis
             </div>
           )}
         </div>
-      )}{" "}
+      )}{" "} */}
       {/* Create Listing Button */}
       {showListingButton && (
         <div className="flex-shrink-0 border-t bg-blue-50 p-4">

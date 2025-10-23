@@ -6,7 +6,7 @@ import type { ChatMessage, ProductAnalysis } from "@/types";
 
 interface MessageListProps {
   messages: ChatMessage[];
-  analysis: ProductAnalysis | null;
+  analysis?: ProductAnalysis | null;
   isLoading: boolean;
 }
 
