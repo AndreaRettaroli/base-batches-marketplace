@@ -71,7 +71,8 @@ export const ProductCard = ({
   const handleBuy = async () => {
     console.log("Buy", product);
     await farcasterSdk.actions.sendToken({
-      token: "eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // Base USDC
+      token: "eip155:8453/erc20:0x036CbD53842c5426634e7929541eC2318f3dCF7e", // Base Sepolia USDC
+      //token: "eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // Base USDC
       amount: parseUnits(product.price.toString(), 6).toString(),
       recipientAddress: product.seller.walletAddress,
     });
