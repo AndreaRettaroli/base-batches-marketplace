@@ -41,7 +41,12 @@ export interface ChatSession {
   createdAt: Date;
   updatedAt: Date;
   flowStep?: {
-    step: "analyze" | "propose_listing" | "gather_details" | "confirm_listing" | "list_product";
+    step:
+      | "analyze"
+      | "propose_listing"
+      | "gather_details"
+      | "confirm_listing"
+      | "list_product";
     data?: any;
   };
   productData?: Partial<MarketplaceProduct>;

@@ -3,10 +3,10 @@
 import { DollarSign, ShoppingBag } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 
-interface BottomNavProps {
+type BottomNavProps = {
   activePage: "home" | "chat" | "profile";
   setActivePage: Dispatch<SetStateAction<"home" | "chat" | "profile">>;
-}
+};
 
 export const BottomNav = ({ activePage, setActivePage }: BottomNavProps) => {
   const tabs = [
@@ -38,6 +38,7 @@ export const BottomNav = ({ activePage, setActivePage }: BottomNavProps) => {
                     : "text-gray-500 hover:text-gray-700"
                 }`}
                 onClick={() => setActivePage(tab.id)}
+                type="button"
               >
                 <Icon className={`h-5 w-5 ${isActive ? "stroke-2" : ""}`} />
                 <span className="font-medium text-xs">{tab.label}</span>

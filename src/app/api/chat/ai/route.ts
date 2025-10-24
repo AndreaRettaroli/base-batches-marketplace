@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Convert messages to the session format and store them
-    const lastMessage = messages[messages.length - 1];
+    const lastMessage = messages.at(-1);
     if (lastMessage && lastMessage.role === "user") {
       // Add user message to session
       const userMessage = {
@@ -97,7 +97,7 @@ Keep questions focused and relevant to the product type.`;
       model: openai("gpt-4"),
       messages: coreMessages,
       temperature: 0.7,
-      onFinish: async (completion) => {
+      onFinish: (completion) => {
         // Add AI response to session
         const aiMessage = {
           id: Date.now().toString(),

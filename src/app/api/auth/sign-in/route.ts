@@ -10,15 +10,15 @@ const quickAuthClient = createClient();
 
 export const POST = async (req: NextRequest) => {
   console.log("🔐 Sign-in attempt at:", new Date().toISOString());
-  
+
   const {
     token: farcasterToken,
     fid: contextFid,
     referrerFid,
   } = await req.json();
-  
+
   console.log("🔐 Sign-in for FID:", contextFid);
-  
+
   if (!(farcasterToken && contextFid) || Number.isNaN(Number(contextFid))) {
     console.log("❌ Invalid arguments for sign-in");
     return NextResponse.json(

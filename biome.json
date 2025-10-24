@@ -30,22 +30,23 @@
         "noUnknownAtRules": "off",
         "noConsole": "off"
       },
+      "performance": {
+        "noBarrelFile": "off"
+      },
       "a11y": {
         "noStaticElementInteractions": "off",
         "noNoninteractiveElementInteractions": "off",
-        "useKeyWithClickEvents": "off",
-        "noSvgWithoutTitle": "off",
-        "useButtonType": "off"
+        "useKeyWithClickEvents": "off"
       },
       "style": {
         "noMagicNumbers": "off",
         "noNestedTernary": "off",
         "useNumericSeparators": "off",
-        "noEnum": "off"
+        "noEnum": "off",
+        "noExportedImports": "off"
       },
       "complexity": {
-        "noExcessiveCognitiveComplexity": "off",
-        "noStaticOnlyClass": "off"
+        "noExcessiveCognitiveComplexity": "off"
       },
       "nursery": {
         "noDeprecatedImports": "off",

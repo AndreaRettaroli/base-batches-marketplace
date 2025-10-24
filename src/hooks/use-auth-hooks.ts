@@ -13,9 +13,9 @@ export function useAuthCheck(enabled = true) {
       queryKey: ["auth-check"],
       url: "/api/auth/check",
       enabled,
-      retry: (failureCount, error) => {
+      retry: (failureCount, error1) => {
         // Don't retry on auth failures (401/403) or after 2 attempts
-        if (error instanceof Error && error.message.includes("401")) {
+        if (error1 instanceof Error && error1.message.includes("401")) {
           return false;
         }
         return failureCount < 2;

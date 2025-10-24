@@ -10,7 +10,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         { status: 400 }
       );
     }
-    const session = await ChatService.createSession(body.userId);
+    const session = ChatService.createSession(body.userId);
     return NextResponse.json({ session });
   } catch (error) {
     console.error("Session creation error:", error);

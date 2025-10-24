@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { parseUnits } from "viem";
 import { ProductDialog } from "@/components/product-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,6 +39,7 @@ import {
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useApiMutation } from "@/hooks/use-api-mutation";
 import type { MarketplaceProduct, UserProfile } from "@/types";
+import { formatAvatarSrc } from "@/utils/index";
 
 export const ProductCard = ({
   product,
@@ -82,9 +84,41 @@ export const ProductCard = ({
   return (
     <Card className="max-w-md select-none will-change-transform">
       <CardHeader>
-        <CardTitle className="line-clamp-2 text-base">
-          {product.title}
-        </CardTitle>
+        <div className="flex items-center gap-2">
+          <div
+            className="cursor-pointer"
+            onClick={async () => {
+              if (product.seller?.farcasterFid) {
+                await farcasterSdk.actions.viewProfile({
+                  fid: product.seller.farcasterFid,
+                });
+              }
+            }}
+          >
+            <Avatar className="size-6 cursor-pointer">
+              <AvatarImage
+                alt={product.seller?.name || "Seller"}
+                src={
+                  product.seller?.avatar
+                    ? formatAvatarSrc(product.seller.avatar)
+                    : "/images/default-image.png"
+                }
+              />
+              <AvatarFallback>
+                {(product.seller?.name || "?")
+                  .trim()
+                  .split(/\s+/g)
+                  .map((n) => n[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+          <CardTitle className="line-clamp-2 text-base">
+            {product.title}
+          </CardTitle>
+        </div>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         <Image
@@ -133,7 +167,7 @@ export const ProductCard = ({
                 </CredenzaTitle>
               </CredenzaHeader>
               <CredenzaBody>
-                <ScrollArea className="h-[300px]">
+                <ScrollArea className="h-[340px]">
                   <ProductDialog product={product} />
                   <ScrollBar orientation="horizontal" />
                 </ScrollArea>

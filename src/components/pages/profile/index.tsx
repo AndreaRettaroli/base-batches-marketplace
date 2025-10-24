@@ -5,9 +5,9 @@ import { useAuth } from "@/contexts/auth-context";
 import { useGetListings } from "@/hooks/use-get-listings";
 import { ProductCard } from "../home/product-card";
 
-interface ProfilePageProps {
+type ProfilePageProps = {
   onCreateNewChat?: () => void;
-}
+};
 
 export const ProfilePage = ({ onCreateNewChat }: ProfilePageProps) => {
   const { user } = useAuth();

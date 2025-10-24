@@ -1,11 +1,18 @@
 "use client";
 
+import { sdk as farcasterSdk } from "@farcaster/miniapp-sdk";
 import Image from "next/image";
 import { useMemo } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import type { MarketplaceProduct } from "@/types";
+import type { MarketplaceProduct, UserProfile } from "@/types";
+import { formatAvatarSrc } from "@/utils/index";
 
-export function ProductDialog({ product }: { product: MarketplaceProduct }) {
+export function ProductDialog({
+  product,
+}: {
+  product: MarketplaceProduct & { seller: UserProfile };
+}) {
   const imageSrc = useMemo(
     () => product.images[0] || "/images/default-image.png",
     [product.images]
@@ -23,6 +30,41 @@ export function ProductDialog({ product }: { product: MarketplaceProduct }) {
       <span>
         {product.currency} {product.price}
       </span>
+      <div
+        className="flex cursor-pointer items-center gap-2"
+        onClick={async () => {
+          if (product.seller?.farcasterFid) {
+            await farcasterSdk.actions.viewProfile({
+              fid: product.seller.farcasterFid,
+            });
+          }
+        }}
+      >
+        <Avatar>
+          <AvatarImage
+            alt={product.seller?.name || "Seller"}
+            src={
+              product.seller?.avatar
+                ? formatAvatarSrc(product.seller.avatar)
+                : "/images/default-image.png"
+            }
+          />
+          <AvatarFallback>
+            {(product.seller?.name || "?")
+              .trim()
+              .split(/\s+/g)
+              .map((n: string) => n[0])
+              .join("")
+              .slice(0, 2)
+              .toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex flex-col">
+          <span className="font-medium text-sm leading-tight">
+            {product.seller?.name || "Unknown"}
+          </span>
+        </div>
+      </div>
       {product.tags?.length > 0 && (
         <div
           className="scrollbar-hide my-2 flex max-w-xs flex-row items-center justify-start gap-2 overflow-scroll text-center"

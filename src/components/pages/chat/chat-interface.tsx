@@ -8,10 +8,10 @@ import ImageUpload from "./image-upload";
 import MessageInput from "./message-input";
 import MessageList from "./message-list";
 
-interface ChatInterfaceProps {
+type ChatInterfaceProps = {
   session: ChatSession;
   onSessionUpdate: (session: ChatSession) => void;
-}
+};
 
 export default function ChatInterface({
   session,
@@ -23,7 +23,6 @@ export default function ChatInterface({
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState<ProductAnalysis | null>(null);
   const [showListingButton, setShowListingButton] = useState(false);
-  const [isAnalysisOpen, setIsAnalysisOpen] = useState(true);
 
   const handleSendMessage = async (message: string, image?: File) => {
     if (!(message.trim() || image)) {
@@ -302,7 +301,7 @@ Your listing is now live and potential buyers can find it. Would you like to lis
       )}{" "} */}
       {/* Create Listing Button */}
       {showListingButton && (
-        <div className="flex-shrink-0 border-t bg-blue-50 p-4">
+        <div className="shrink-0 border-t bg-blue-50 p-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-medium text-blue-900">
@@ -323,7 +322,7 @@ Your listing is now live and potential buyers can find it. Would you like to lis
         </div>
       )}
       {/* Input Area */}
-      <div className="flex-shrink-0 border-t p-4">
+      <div className="shrink-0 border-t p-4">
         <div className="flex space-x-2 align-center">
           <ImageUpload onImageSelect={(file) => handleSendMessage("", file)} />
           <MessageInput

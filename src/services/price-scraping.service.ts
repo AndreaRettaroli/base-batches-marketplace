@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/noStaticOnlyClass: need for static methods */
 import axios from "axios";
 import { load as cheerioLoad } from "cheerio";
 import { env } from "@/lib/env";

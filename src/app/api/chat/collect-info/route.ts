@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     // Update product data for the session
     const session = ChatService.getSession(sessionId);
-    if (session && session.productData) {
+    if (session?.productData) {
       session.productData = { ...session.productData, [infoType]: value };
     }
 

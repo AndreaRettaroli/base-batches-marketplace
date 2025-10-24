@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/noStaticOnlyClass: need for static methods */
 import { jsonrepair } from "jsonrepair";
 import OpenAI from "openai";
 import { z } from "zod";

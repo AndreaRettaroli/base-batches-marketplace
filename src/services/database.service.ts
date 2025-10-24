@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/noStaticOnlyClass: need for static methods */
 import type { MiniAppNotificationDetails } from "@farcaster/miniapp-core";
 import mongoose from "mongoose";
 import { env } from "@/lib/env";

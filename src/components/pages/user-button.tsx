@@ -1,5 +1,6 @@
 "use client";
 
+import { CheckIcon, CopyIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useAccount } from "wagmi";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -88,7 +89,11 @@ export const UserButton = ({
               <Avatar>
                 <AvatarImage
                   alt={user?.name || "User"}
-                  src={formatAvatarSrc(user?.avatar || "/images/icon.png")}
+                  src={
+                    user?.avatar
+                      ? formatAvatarSrc(user.avatar)
+                      : "/images/default-image.png"
+                  }
                 />
                 <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
@@ -108,8 +113,7 @@ export const UserButton = ({
               <>
                 <DropdownMenuGroup>
                   <DropdownMenuItem
-                    onSelect={(e) => {
-                      e.preventDefault();
+                    onSelect={() => {
                       handleCopyAddress();
                     }}
                   >
@@ -118,6 +122,11 @@ export const UserButton = ({
                         ? "Copied!"
                         : `${address.slice(0, 6)}...${address.slice(-4)}`}
                     </span>
+                    {copied ? (
+                      <CheckIcon className="size-4" />
+                    ) : (
+                      <CopyIcon className="size-4" />
+                    )}
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
@@ -126,14 +135,12 @@ export const UserButton = ({
             <DropdownMenuItem onClick={() => setActivePage("profile")}>
               View profile
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
           </>
         ) : (
           <>
             <DropdownMenuLabel>Sign in</DropdownMenuLabel>
             <DropdownMenuItem
-              onSelect={(e) => {
-                e.preventDefault();
+              onSelect={() => {
                 handleConnect();
               }}
             >

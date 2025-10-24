@@ -12,7 +12,7 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
       retry: (failureCount, error) => {
-        // Don't retry on client errors (4xx) 
+        // Don't retry on client errors (4xx)
         if (error instanceof Error && error.message.includes("4")) {
           return false;
         }

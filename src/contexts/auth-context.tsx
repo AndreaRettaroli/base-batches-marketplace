@@ -11,7 +11,7 @@ import { useFarcaster } from "@/contexts/farcaster-context";
 import { useAuthCheck, useFarcasterSignIn } from "@/hooks/use-auth-hooks";
 import type { UserProfile as User } from "@/types";
 
-interface AuthContextType {
+type AuthContextType = {
   // User data
   user: User | null;
   isAuthenticated: boolean;
@@ -26,7 +26,7 @@ interface AuthContextType {
   // Utils
   refetchUser: () => Promise<void>;
   signInWithFarcaster: () => Promise<void>;
-}
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -38,9 +38,9 @@ export const useAuth = () => {
   return context;
 };
 
-interface AuthProviderProps {
+type AuthProviderProps = {
   children: ReactNode;
-}
+};
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Miniapp context
@@ -95,7 +95,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     // Prevent rapid successive sign-in attempts
     const now = Date.now();
-    if (now - lastSignInAttempt < 5000) { // 5 second cooldown
+    if (now - lastSignInAttempt < 5000) {
+      // 5 second cooldown
       console.log("Sign-in attempt blocked due to cooldown");
       return;
     }
@@ -131,6 +132,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, [miniAppContext, farcasterSignIn, lastSignInAttempt]);
 
   // Auto sign-in logic (production / normal flow) -----------------------------------------------
+  // biome-ignore lint/correctness/useExhaustiveDependencies: no need
   useEffect(() => {
     // If we're in a miniapp, wait for it to be ready
     if (isInMiniApp && !isMiniAppReady) {

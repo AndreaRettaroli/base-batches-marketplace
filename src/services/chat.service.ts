@@ -1,4 +1,4 @@
-
+/** biome-ignore-all lint/complexity/noStaticOnlyClass: need for static methods */
 import { v4 as uuidv4 } from "uuid";
 
 import type { ChatMessage, ChatSession } from "../types";
@@ -6,8 +6,6 @@ import { DatabaseService } from "./database.service";
 import { ListingFlowService } from "./listing-flow.service";
 
 export class ChatService {
-
-
   private static sessions: Map<string, ChatSession> = new Map();
 
   static createSession(userId: string): ChatSession {
@@ -109,7 +107,9 @@ export class ChatService {
     if (!session) {
       // Don't create a new session, this should not happen in normal flow
       // Log this as it indicates a potential issue
-      console.warn(`Session ${sessionId} not found for user ${userId}. This may indicate a session management issue.`);
+      console.warn(
+        `Session ${sessionId} not found for user ${userId}. This may indicate a session management issue.`
+      );
       session = ChatService.createSession(userId);
       session.id = sessionId;
       ChatService.sessions.set(sessionId, session);
@@ -139,17 +139,22 @@ export class ChatService {
     // Add user message to conversation history
     session.conversationHistory.push({
       role: "user",
-      content: userMessage.content
+      content: userMessage.content,
     });
 
     try {
       // Check if user wants to confirm listing
       const lowerMessage = message.toLowerCase();
-      if ((lowerMessage.includes("confirm") || lowerMessage.includes("yes") || lowerMessage.includes("list it")) &&
-        session.flowStep.step === "confirm_listing" && session.productData) {
-
+      if (
+        (lowerMessage.includes("confirm") ||
+          lowerMessage.includes("yes") ||
+          lowerMessage.includes("list it")) &&
+        session.flowStep.step === "confirm_listing" &&
+        session.productData
+      ) {
         // Create the listing
-        const listingCreated = await ChatService.createListingFromSession(session);
+        const listingCreated =
+          await ChatService.createListingFromSession(session);
         if (listingCreated) {
           const confirmationMessage: ChatMessage = {
             id: uuidv4(),
@@ -194,8 +199,10 @@ Want to list another item? Just upload another image to get started! 📸`,
             // Update with final listing data
             session.productData = {
               ...session.productData,
-              ...flowResult.toolCall.data.finalListing
+              ...flowResult.toolCall.data.finalListing,
             };
+            break;
+          default:
             break;
         }
       }
@@ -214,17 +221,17 @@ Want to list another item? Just upload another image to get started! 📸`,
       // Add AI response to conversation history
       session.conversationHistory.push({
         role: "assistant",
-        content: flowResult.response
+        content: flowResult.response,
       });
 
       return aiMessage;
-
     } catch (error) {
       console.error("Error in sendMessage:", error);
       const errorMessage: ChatMessage = {
         id: uuidv4(),
         role: "assistant",
-        content: "Sorry, I encountered an error while processing your request. Please try again.",
+        content:
+          "Sorry, I encountered an error while processing your request. Please try again.",
         timestamp: new Date(),
       };
 
@@ -271,7 +278,7 @@ Want to list another item? Just upload another image to get started! 📸`,
     // Add user message to conversation history
     session.conversationHistory.push({
       role: "user",
-      content: userMessage.content
+      content: userMessage.content,
     });
 
     try {
@@ -299,7 +306,9 @@ Want to list another item? Just upload another image to get started! 📸`,
               condition: flowResult.toolCall.data.condition,
               brand: flowResult.toolCall.data.brand,
               tags: flowResult.toolCall.data.tags,
-              images: productAnalysis?.imageUrl ? [productAnalysis.imageUrl] : [],
+              images: productAnalysis?.imageUrl
+                ? [productAnalysis.imageUrl]
+                : [],
               marketPriceAnalysis: productAnalysis?.priceComparison || [],
               suggestedPrice: flowResult.toolCall.data.estimatedPrice,
             };
@@ -309,8 +318,10 @@ Want to list another item? Just upload another image to get started! 📸`,
             // Update with final listing data
             session.productData = {
               ...session.productData,
-              ...flowResult.toolCall.data.finalListing
+              ...flowResult.toolCall.data.finalListing,
             };
+            break;
+          default:
             break;
         }
       }
@@ -329,17 +340,17 @@ Want to list another item? Just upload another image to get started! 📸`,
       // Add AI response to conversation history
       session.conversationHistory.push({
         role: "assistant",
-        content: flowResult.response
+        content: flowResult.response,
       });
 
       return aiMessage;
-
     } catch (error) {
       console.error("Error in sendMessageWithProductAnalysis:", error);
       const errorMessage: ChatMessage = {
         id: uuidv4(),
         role: "assistant",
-        content: "Sorry, I encountered an error while processing your request. Please try again.",
+        content:
+          "Sorry, I encountered an error while processing your request. Please try again.",
         timestamp: new Date(),
       };
 
