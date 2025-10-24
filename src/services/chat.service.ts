@@ -1,10 +1,14 @@
-/** biome-ignore-all lint/complexity/noStaticOnlyClass: need for static methods */
 import { v4 as uuidv4 } from "uuid";
 
 import type { ChatMessage, ChatSession } from "../types";
 import { DatabaseService } from "./database.service";
 import { ListingFlowService } from "./listing-flow.service";
 
+// Regex for detecting price modification requests
+const PRICE_MODIFICATION_REGEX =
+  /(?:list.*for|price.*at|sell.*for|for)\s*\$?(\d+(?:\.\d{2})?)/i;
+
+// biome-ignore lint/complexity/noStaticOnlyClass: Service classes with static methods are a valid pattern for singleton services
 export class ChatService {
   private static sessions: Map<string, ChatSession> = new Map();
 
@@ -143,8 +147,48 @@ export class ChatService {
     });
 
     try {
-      // Check if user wants to confirm listing
+      // Check if user wants to modify the price from a previous analysis
       const lowerMessage = message.toLowerCase();
+      const priceMatch = message.match(PRICE_MODIFICATION_REGEX);
+
+      if (
+        priceMatch &&
+        session.productData &&
+        session.flowStep.step === "propose_listing"
+      ) {
+        const newPrice = Number.parseFloat(priceMatch[1]);
+        session.productData.price = newPrice;
+        session.productData.suggestedPrice = newPrice;
+
+        const priceUpdateMessage: ChatMessage = {
+          id: uuidv4(),
+          role: "assistant",
+          content: `Perfect! I've updated the price to $${newPrice} for your ${session.productData.title}.
+
+Updated Listing:
+📝 ${session.productData.description}
+💰 Price: $${newPrice} (Updated)
+📂 Category: ${session.productData.category}
+✨ Condition: ${session.productData.condition}
+${session.productData.brand ? `🏷️ Brand: ${session.productData.brand}` : ""}
+
+Would you like to proceed with this listing at $${newPrice}, or would you like to add more details?`,
+          timestamp: new Date(),
+        };
+
+        session.messages.push(priceUpdateMessage);
+        session.updatedAt = new Date();
+
+        // Add AI response to conversation history
+        session.conversationHistory.push({
+          role: "assistant",
+          content: priceUpdateMessage.content,
+        });
+
+        return priceUpdateMessage;
+      }
+
+      // Check if user wants to confirm listing
       if (
         (lowerMessage.includes("confirm") ||
           lowerMessage.includes("yes") ||
@@ -159,7 +203,7 @@ export class ChatService {
           const confirmationMessage: ChatMessage = {
             id: uuidv4(),
             role: "assistant",
-            content: `🎉 **Listing Created Successfully!**
+            content: `🎉 Listing Created Successfully!
 
 Your ${session.productData.title} has been listed in the marketplace at $${session.productData.price}!
 
@@ -202,7 +246,9 @@ Want to list another item? Just upload another image to get started! 📸`,
               ...flowResult.toolCall.data.finalListing,
             };
             break;
+
           default:
+            // No action needed for other tool calls
             break;
         }
       }
@@ -321,7 +367,9 @@ Want to list another item? Just upload another image to get started! 📸`,
               ...flowResult.toolCall.data.finalListing,
             };
             break;
+
           default:
+            // No action needed for other tool calls
             break;
         }
       }

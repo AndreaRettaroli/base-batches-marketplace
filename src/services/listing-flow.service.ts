@@ -18,7 +18,7 @@ export type ListingTool = {
   };
 };
 
-export type ListingFlowStep = {
+export interface ListingFlowStep {
   step:
     | "analyze"
     | "propose_listing"
@@ -27,7 +27,7 @@ export type ListingFlowStep = {
     | "list_product";
   data?: any;
   nextStep?: string;
-};
+}
 
 export class ListingFlowService {
   private static tools: ListingTool[] = [
@@ -282,14 +282,14 @@ ${
       case "propose_listing":
         return `I've analyzed your product and here's what I found:
 
-**${toolData.title}**
+${toolData.title}
 📝 ${toolData.description}
-💰 **Estimated Price: $${toolData.estimatedPrice}**
+💰 Estimated Price: $${toolData.estimatedPrice}
 📂 Category: ${toolData.category}
 ✨ Condition: ${toolData.condition}
 ${toolData.brand ? `🏷️ Brand: ${toolData.brand}` : ""}
 
-**Price Reasoning:** ${toolData.reasoning}
+Price Reasoning: ${toolData.reasoning}
 
 Would you like to proceed with this listing at $${toolData.estimatedPrice}, or would you like to adjust the price or add more details?`;
 
@@ -305,12 +305,12 @@ Please provide any additional information, or just say "proceed" if you're ready
 
 ${toolData.summary}
 
-**Final Details:**
-- **Title:** ${toolData.finalListing.title}
-- **Price:** $${toolData.finalListing.price}
-- **Category:** ${toolData.finalListing.category}
-- **Condition:** ${toolData.finalListing.condition}
-${toolData.finalListing.brand ? `- **Brand:** ${toolData.finalListing.brand}` : ""}
+Final Details:
+- Title: ${toolData.finalListing.title}
+- Price: $${toolData.finalListing.price}
+- Category: ${toolData.finalListing.category}
+- Condition: ${toolData.finalListing.condition}
+${toolData.finalListing.brand ? `- Brand: ${toolData.finalListing.brand}` : ""}
 
 Ready to list your product? Reply with "confirm" to publish your listing!`;
 

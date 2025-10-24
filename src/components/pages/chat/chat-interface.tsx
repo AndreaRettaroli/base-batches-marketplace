@@ -164,14 +164,14 @@ export default function ChatInterface({
       const successMessage: ChatMessage = {
         id: Date.now().toString(),
         role: "assistant",
-        content: `🎉 **Listing Created Successfully!** 🎉
+        content: `🎉 Listing Created Successfully! 🎉
 
 Your item has been listed in the marketplace!
 
-**Product ID:** ${data.product.id}
-**Title:** ${data.product.title}
-**Price:** $${data.product.price}
-**Status:** ${data.product.status}
+Product ID: ${data.product.id}
+Title: ${data.product.title}
+Price: $${data.product.price}
+Status: ${data.product.status}
 
 Your listing is now live and potential buyers can find it. Would you like to list another item? Just upload another image to get started! 📸`,
         timestamp: new Date(),
