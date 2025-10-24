@@ -97,10 +97,10 @@ export async function sendFarcasterNotification({
  * @documentation https://miniapps.farcaster.xyz/docs/guides/publishing#define-your-application-configuration
  */
 export function getFarcasterManifest() {
-  let miniappName = "Fc Marketplace";
+  let miniappName = "Marketplace";
   let noindex = true;
   const appUrl = env.NEXT_PUBLIC_URL;
-  if (appUrl === "https://fc-marketplace.xyz") {
+  if (appUrl === "https://marketplace.xyz") {
     noindex = false;
   } else if (appUrl.includes("ngrok") || appUrl.includes("tunnel")) {
     miniappName += " Local";
@@ -125,13 +125,13 @@ export function getFarcasterManifest() {
       splashBackgroundColor: "#FFFFFF",
       webhookUrl: `${appUrl}/api/webhook/farcaster`, // our farcaster webhook
       // Metadata https://github.com/farcasterxyz/miniapps/discussions/191
-      subtitle: "Fc Marketplace", // 30 characters, no emojis or special characters, short description under app name
-      description: "Fc Marketplace", // 170 characters, no emojis or special characters, promotional message displayed on Mini App Page
+      subtitle: "Marketplace", // 30 characters, no emojis or special characters, short description under app name
+      description: "Farcaster and Base mini app Marketplace", // 170 characters, no emojis or special characters, promotional message displayed on Mini App Page
       primaryCategory: "shopping", // https://github.com/farcasterxyz/miniapps/blob/main/packages/miniapp-core/src/schemas/manifest.ts
       tags: ["shop", "marketplace", "sell", "buy"], // up to 5 tags, filtering/search tags
-      tagline: "Farcaster Marketplace", // 30 characters, marketing tagline should be punchy and descriptive
+      tagline: "Farcaster and Base mini app Marketplace", // 30 characters, marketing tagline should be punchy and descriptive
       ogTitle: `${miniappName}`, // 30 characters, app name + short tag, Title case, no emojis
-      ogDescription: "Fc Marketplace", // 100 characters, summarize core benefits in 1-2 lines
+      ogDescription: "Farcaster and Base mini app Marketplace", // 100 characters, summarize core benefits in 1-2 lines
       screenshotUrls: [
         // 1284 x 2778, visual previews of the app, max 3 screenshots
         `${appUrl}/images/default-image.png`,

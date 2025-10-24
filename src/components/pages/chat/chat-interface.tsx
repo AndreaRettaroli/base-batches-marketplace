@@ -324,7 +324,7 @@ Your listing is now live and potential buyers can find it. Would you like to lis
       )}
       {/* Input Area */}
       <div className="flex-shrink-0 border-t p-4">
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 align-center">
           <ImageUpload onImageSelect={(file) => handleSendMessage("", file)} />
           <MessageInput
             disabled={isLoading}
