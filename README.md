@@ -8,7 +8,7 @@ An intelligent marketplace platform that helps users sell their items by automat
 ![analysing](./media/Screenshot%202025-10-24%20at%2021.35.58.png)
 ![infos](./media/Screenshot%202025-10-24%20at%2022.35.04.png)
 ![listing](./media/Screenshot%202025-10-24%20at%2022.35.20.png)
-![delete product](./media/Screenshot%202025-10-24%20at%2021.35.03.png)
+![delete product](./media/Screenshot%202025-10-25%20at%2000.56.06.png)
 
 ## 🔗 Links 
 
