@@ -131,7 +131,7 @@ export function getFarcasterManifest() {
       tags: ["shop", "marketplace", "sell", "buy"], // up to 5 tags, filtering/search tags
       tagline: "Farcaster and Base mini app Marketplace", // 30 characters, marketing tagline should be punchy and descriptive
       ogTitle: `${miniappName}`, // 30 characters, app name + short tag, Title case, no emojis
-      ogDescription: "Farcaster and Base mini app Marketplace", // 100 characters, summarize core benefits in 1-2 lines
+      ogDescription: "Farcaster Marketplace", // 100 characters, summarize core benefits in 1-2 lines
       screenshotUrls: [
         // 1284 x 2778, visual previews of the app, max 3 screenshots
         `${appUrl}/images/default-image.png`,
