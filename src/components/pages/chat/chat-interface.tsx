@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import type { ChatMessage, ChatSession, ProductAnalysis } from "@/types";
 import ImageUpload from "./image-upload";
@@ -18,11 +17,9 @@ export default function ChatInterface({
   onSessionUpdate,
 }: ChatInterfaceProps) {
   const { user } = useAuth();
-  const sellerId = user?.id;
 
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState<ProductAnalysis | null>(null);
-  const [showListingButton, setShowListingButton] = useState(false);
 
   const handleSendMessage = async (message: string, image?: File) => {
     if (!(message.trim() || image)) {
@@ -122,14 +119,6 @@ export default function ChatInterface({
           updatedAt: new Date(),
         };
         onSessionUpdate(updatedSession);
-
-        // Check if ready to show listing button
-        if (
-          data.message.content.includes("ready to list") ||
-          data.message.content.includes("create the listing")
-        ) {
-          setShowListingButton(true);
-        }
       }
     } catch (error) {
       console.error("Error sending message:", error);
@@ -138,74 +127,6 @@ export default function ChatInterface({
       setIsLoading(false);
     }
   };
-
-  const handleCreateListing = useCallback(async () => {
-    try {
-      setIsLoading(true);
-
-      const response = await fetch("/api/listings/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          sessionId: session.id,
-          sellerId,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create listing");
-      }
-
-      const data = await response.json();
-
-      // Add success message to chat
-      const successMessage: ChatMessage = {
-        id: Date.now().toString(),
-        role: "assistant",
-        content: `🎉 Listing Created Successfully! 🎉
-
-Your item has been listed in the marketplace!
-
-Product ID: ${data.product.id}
-Title: ${data.product.title}
-Price: $${data.product.price}
-Status: ${data.product.status}
-
-Your listing is now live and potential buyers can find it. Would you like to list another item? Just upload another image to get started! 📸`,
-        timestamp: new Date(),
-      };
-
-      const updatedSession = {
-        ...session,
-        messages: [...session.messages, successMessage],
-        updatedAt: new Date(),
-        state: "listed" as const,
-      };
-      onSessionUpdate(updatedSession);
-      setShowListingButton(false);
-    } catch (error) {
-      console.error("Error creating listing:", error);
-      // Add error message to chat
-      const errorMessage: ChatMessage = {
-        id: Date.now().toString(),
-        role: "assistant",
-        content:
-          "❌ Sorry, there was an error creating your listing. Please try again.",
-        timestamp: new Date(),
-      };
-
-      const updatedSession = {
-        ...session,
-        messages: [...session.messages, errorMessage],
-        updatedAt: new Date(),
-      };
-      onSessionUpdate(updatedSession);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [session.id, sellerId, onSessionUpdate, session]);
 
   return (
     <div className="flex size-full flex-col rounded-lg border bg-white shadow-sm">
@@ -299,28 +220,6 @@ Your listing is now live and potential buyers can find it. Would you like to lis
           )}
         </div>
       )}{" "} */}
-      {/* Create Listing Button */}
-      {showListingButton && (
-        <div className="shrink-0 border-t bg-blue-50 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-medium text-blue-900">
-                Ready to create your listing?
-              </h3>
-              <p className="text-blue-700 text-sm">
-                Your product details look complete!
-              </p>
-            </div>
-            <Button
-              className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700 disabled:bg-blue-400"
-              disabled={isLoading}
-              onClick={handleCreateListing}
-            >
-              {isLoading ? "Creating..." : "🚀 Create Listing"}
-            </Button>
-          </div>
-        </div>
-      )}
       {/* Input Area */}
       <div className="shrink-0 border-t p-4">
         <div className="flex space-x-2 align-center">

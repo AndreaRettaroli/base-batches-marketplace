@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 
 import type { ChatMessage, ChatSession } from "../types";
-import { DatabaseService } from "./database.service";
 import { ListingFlowService } from "./listing-flow.service";
 
 // Regex for detecting price modification requests
@@ -53,52 +52,6 @@ export class ChatService {
       throw new Error("Session not found");
     }
     session.productData = { ...session.productData, [infoType]: value };
-  }
-
-  static createListing(sessionId: string): Promise<boolean> {
-    const session = ChatService.getSession(sessionId);
-    if (!session) {
-      throw new Error("Session not found");
-    }
-    return ChatService.createListingFromSession(session);
-  }
-
-  private static async createListingFromSession(
-    session: ChatSession
-  ): Promise<boolean> {
-    if (!session.productData) {
-      console.error("No product data found in session");
-      return false;
-    }
-
-    try {
-      // Ensure required fields are present
-      const productData = {
-        sellerId: session.userId,
-        title: session.productData.title || "Untitled Product",
-        description:
-          session.productData.description || "No description provided",
-        category: session.productData.category || "Other",
-        brand: session.productData.brand,
-        condition: session.productData.condition || "used",
-        price: session.productData.price || 0,
-        currency: session.productData.currency || "USD",
-        images: session.productData.images || [],
-        tags: session.productData.tags || [],
-        specifications: session.productData.specifications || {},
-        marketPriceAnalysis: session.productData.marketPriceAnalysis || [],
-        suggestedPrice: session.productData.suggestedPrice || 0,
-        status: "active" as const,
-      };
-
-      const createdProduct = await DatabaseService.createProduct(productData);
-      console.log("✅ Product created successfully:", createdProduct.id);
-      session.flowStep = { step: "list_product" };
-      return true;
-    } catch (error) {
-      console.error("❌ Error creating listing:", error);
-      return false;
-    }
   }
 
   static async sendMessage(
@@ -154,7 +107,9 @@ export class ChatService {
       if (
         priceMatch &&
         session.productData &&
-        session.flowStep.step === "propose_listing"
+        (session.flowStep.step === "propose_listing" ||
+          session.flowStep.step === "gather_details" ||
+          session.flowStep.step === "confirm_listing")
       ) {
         const newPrice = Number.parseFloat(priceMatch[1]);
         session.productData.price = newPrice;
@@ -196,10 +151,13 @@ Would you like to proceed with this listing at $${newPrice}, or would you like t
         session.flowStep.step === "confirm_listing" &&
         session.productData
       ) {
-        // Create the listing
-        const listingCreated =
-          await ChatService.createListingFromSession(session);
-        if (listingCreated) {
+        // Create the listing through ListingFlowService
+        const listingResult = await ListingFlowService.createListing(
+          session.userId,
+          session.productData
+        );
+
+        if (listingResult.success) {
           const confirmationMessage: ChatMessage = {
             id: uuidv4(),
             role: "assistant",
@@ -219,6 +177,48 @@ Want to list another item? Just upload another image to get started! 📸`,
 
           return confirmationMessage;
         }
+
+        const errorMessage: ChatMessage = {
+          id: uuidv4(),
+          role: "assistant",
+          content: `❌ Sorry, there was an error creating your listing: ${listingResult.error}. Please try again.`,
+          timestamp: new Date(),
+        };
+
+        session.messages.push(errorMessage);
+        return errorMessage;
+      }
+
+      // Special handling for confirm_listing step
+      if (session.flowStep.step === "confirm_listing" && session.productData) {
+        // User is in confirmation step but didn't say confirm
+        // Just ask them to confirm again without calling ListingFlowService
+        const confirmationPrompt: ChatMessage = {
+          id: uuidv4(),
+          role: "assistant",
+          content: `I'm ready to create your listing! Here are the details:
+
+**${session.productData.title}**
+📝 ${session.productData.description}
+💰 **Price: $${session.productData.price}**
+📂 Category: ${session.productData.category}
+✨ Condition: ${session.productData.condition}
+${session.productData.brand ? `🏷️ Brand: ${session.productData.brand}` : ""}
+
+Ready to list your product? Reply with "confirm" to publish your listing!`,
+          timestamp: new Date(),
+        };
+
+        session.messages.push(confirmationPrompt);
+        session.updatedAt = new Date();
+
+        // Add to conversation history
+        session.conversationHistory.push({
+          role: "assistant",
+          content: confirmationPrompt.content,
+        });
+
+        return confirmationPrompt;
       }
 
       // Process the message through the listing flow

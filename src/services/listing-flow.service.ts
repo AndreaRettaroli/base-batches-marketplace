@@ -3,6 +3,7 @@
 import OpenAI from "openai";
 import { env } from "@/lib/env";
 import type { ProductAnalysis } from "@/types";
+import { DatabaseService } from "./database.service";
 
 const openai = new OpenAI({
   apiKey: env.OPENAI_API_KEY,
@@ -127,7 +128,90 @@ export class ListingFlowService {
         required: ["finalListing", "summary"],
       },
     },
+    {
+      name: "create_listing",
+      description:
+        "Create the final listing in the database after user confirmation",
+      parameters: {
+        type: "object",
+        properties: {
+          listingData: {
+            type: "object",
+            properties: {
+              sellerId: { type: "string" },
+              title: { type: "string" },
+              description: { type: "string" },
+              price: { type: "number" },
+              category: { type: "string" },
+              condition: { type: "string" },
+              brand: { type: "string" },
+              currency: { type: "string" },
+              images: { type: "array", items: { type: "string" } },
+              tags: { type: "array", items: { type: "string" } },
+              specifications: { type: "object" },
+              marketPriceAnalysis: { type: "array", items: { type: "object" } },
+              suggestedPrice: { type: "number" },
+              status: { type: "string" },
+            },
+            required: [
+              "sellerId",
+              "title",
+              "description",
+              "price",
+              "category",
+              "condition",
+            ],
+          },
+          confirmationMessage: {
+            type: "string",
+            description: "Success message to show to the user",
+          },
+        },
+        required: ["listingData", "confirmationMessage"],
+      },
+    },
   ];
+
+  static async createListing(
+    userId: string,
+    productData: any
+  ): Promise<{ success: boolean; productId?: string; error?: string }> {
+    if (!productData) {
+      console.error("No product data found");
+      return { success: false, error: "No product data provided" };
+    }
+
+    try {
+      // Ensure required fields are present
+      const listingData = {
+        sellerId: userId,
+        title: productData.title || "Untitled Product",
+        description: productData.description || "No description provided",
+        category: productData.category || "Other",
+        brand: productData.brand,
+        condition: productData.condition || "used",
+        price: productData.price || 0,
+        currency: productData.currency || "USD",
+        images: productData.images || [],
+        tags: productData.tags || [],
+        specifications: productData.specifications || {},
+        marketPriceAnalysis: productData.marketPriceAnalysis || [],
+        suggestedPrice: productData.suggestedPrice || 0,
+        status: "active" as const,
+      };
+
+      const createdProduct = await DatabaseService.createProduct(listingData);
+      console.log("✅ Product created successfully:", createdProduct.id);
+
+      return { success: true, productId: createdProduct.id };
+    } catch (error) {
+      console.error("❌ Error creating listing:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  }
 
   static async processUserMessage(
     message: string,
@@ -269,6 +353,8 @@ ${
         return { step: "gather_details", data: currentStep.data };
       case "finalize_listing":
         return { step: "confirm_listing", data: currentStep.data };
+      case "create_listing":
+        return { step: "list_product", data: currentStep.data };
       default:
         return currentStep;
     }
@@ -313,6 +399,9 @@ Final Details:
 ${toolData.finalListing.brand ? `- Brand: ${toolData.finalListing.brand}` : ""}
 
 Ready to list your product? Reply with "confirm" to publish your listing!`;
+
+      case "create_listing":
+        return toolData.confirmationMessage;
 
       default:
         return "Let me help you with your product listing.";
