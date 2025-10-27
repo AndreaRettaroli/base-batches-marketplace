@@ -5,6 +5,7 @@ import { cookieToInitialState, WagmiProvider } from "wagmi";
 import { AuthProvider } from "@/contexts/auth-context";
 import { FarcasterProvider } from "@/contexts/farcaster-context";
 import { wagmiConfig } from "@/lib/wagmi";
+import { ErudaProvider } from "./eruda";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,12 +33,14 @@ export default function Providers({
 }) {
   const initialState = cookieToInitialState(wagmiConfig, cookie);
   return (
-    <WagmiProvider config={wagmiConfig} initialState={initialState}>
-      <QueryClientProvider client={queryClient}>
-        <FarcasterProvider addMiniAppOnLoad={true}>
-          <AuthProvider>{children}</AuthProvider>
-        </FarcasterProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    <ErudaProvider>
+      <WagmiProvider config={wagmiConfig} initialState={initialState}>
+        <QueryClientProvider client={queryClient}>
+          <FarcasterProvider addMiniAppOnLoad={true}>
+            <AuthProvider>{children}</AuthProvider>
+          </FarcasterProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </ErudaProvider>
   );
 }

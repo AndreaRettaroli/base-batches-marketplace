@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { preconnect } from "react-dom";
 import "./globals.css";
 import { headers } from "next/headers";
-import Providers from "./providers";
+import Providers from "@/components/providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

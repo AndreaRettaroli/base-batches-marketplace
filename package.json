@@ -37,6 +37,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.2.3",
+    "eruda": "^3.4.3",
     "jiti": "~1.21.7",
     "jose": "^6.1.0",
     "jsonrepair": "^3.13.1",
